@@ -1,0 +1,116 @@
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian) (format=pdftex 2014.10.21)  18 JAN 2017 16:29
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**manual.tex
+(./manual.tex (./gapmacro.tex
+(/usr/share/texlive/texmf-dist/tex/plain/amsfonts/amssym.tex
+(/usr/share/texlive/texmf-dist/tex/plain/amsfonts/amssym.def
+\msafam=\fam8
+\msbfam=\fam9
+\eufmfam=\fam10
+))
+Running PDFTeX
+\pagewidth=\dimen16
+\pageheight=\dimen17
+\colwidth=\dimen18
+\partialpage=\box16
+\origvsize=\dimen19
+\manindent=\dimen20
+\smallmanindent=\dimen21
+\msbfam=\fam11
+\labelout=\write0
+\indexout=\write1
+\secindout=\write2
+\tocout=\write3
+\citeout=\write4
+\ans=\write5
+\labelin=\read1
+\indexin=\read2
+\tocin=\read3
+\citein=\read4
+\secno=\count27
+\subsecno=\count28
+\exno=\count29
+\indentno=\count30
+) [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
+\makelabel {symorb:contents}{1}
+Chapter `Contents' .
+(./manual.toc) [2.1
+\chapcontents {\tocstrut }{Contents}{2}
+] (./manual.lab)
+\openout3 = `manual.toc'.
+
+\openout0 = `manual.lab'.
+
+\openout1 = `manual.idx'.
+
+\openout2 = `manual.six'.
+
+\openout4 = `manual.aux'.
+
+ (./intro.tex
+Chapter `Introduction' .
+Reference `FT2003' undefined.
+Reference `zz' undefined.
+) [3.2] (./symorb.tex
+Chapter `Symorb Manual' .
+[4.1] [5.1]) (./minpath.tex [6.1] [7.1]
+Chapter `MinPath: an interactive optimization program' .
+Reference `zz' undefined.
+[8.2]
+Overfull \hbox (678.56078pt too wide) in paragraph at lines 125--126
+ []\tentt all[]minpaths(dim=\tenit dim\tentt ,NOB=\tenit NOB\tentt ,GroupOrder=
+\tenit group[]order\tentt ,KernelTauOrder=\tenit kernel[]tau[]order\tentt ,Acti
+onType=\tenit action[]type\tentt ,IsTypeR=\tenit IsTypeR\tentt ,IsCoercive=\ten
+it IsCoercive\tentt ,IsRedundant=\tenit IsRedundant\tentt ,HasAlwaysCollisions=
+\tenit HasAlwaysCollisions\tentt ,TDSizes=\tenit TDSizes\tentt ) |
+
+\hbox(6.94444+2.22223)x468.0
+.\glue 5.24995
+.\hbox(5.68147+0.0)x0.0, glue set - 11.25002fil
+..\glue 0.0 plus 1.0fil minus 1.0fil
+..\hbox(3.95929+0.52972)x6.25002, shifted -1.72218
+...\sevenmsa I
+..\kern 5.0
+.\tentt a
+.\tentt l
+.\tentt l
+.etc.
+
+[9.2] [10.2]) [11.2]
+Chapter `Bibliography' .
+(./manual.bbl) [12.1]
+Chapter `Index' .
+No file manual.ind.
+##
+## Citations for BibTeX written on manual.aux.
+## Index entries for makeindex written on manual.idx.
+## Section index entries written on manual.six.
+## Label definitions written on manual.lab.
+## Table of contents written on manual.toc.
+## There were undefined labels or references.
+## Labels have changed, run again. (Or they were multiply defined.)
+##
+[13.2] )pdfTeX warning (dest): name{Index} has been referenced but does not exi
+st, replaced by a fixed one
+
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/
+share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cminch.pfb></usr/share/
+texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texliv
+e/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fo
+nts/type1/public/amsfonts/cm/cmsl10.pfb></usr/share/texlive/texmf-dist/fonts/ty
+pe1/public/amsfonts/cm/cmssdc10.pfb></usr/share/texlive/texmf-dist/fonts/type1/
+public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmtt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/sy
+mbols/msam7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symb
+ols/msbm10.pfb>
+Output written on manual.pdf (13 pages, 158131 bytes).
+PDF statistics:
+ 162 PDF objects out of 1000 (max. 8388607)
+ 133 compressed objects within 2 object streams
+ 15 named destinations out of 1000 (max. 500000)
+ 121 words of extra memory for PDF output out of 10000 (max. 10000000)
+

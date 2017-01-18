@@ -1,0 +1,264 @@
+#!/usr/bin/env  python
+
+import sys
+import pypar
+import os
+
+sys.path=sys.path+['/home/ferrario/local/symorb/py']
+from min_path.mod_minpath import *
+from min_path.myconf import NUM_PARNODES, HostFile
+import pickle
+import getopt
+import string
+import re
+
+#### params_begin
+PROGRAMNAME = string.split(sys.argv[0],'/')[-1]
+MAXSOLUTIONS=64
+SYMFILE='prova.sym'
+OUTFILE='parminpath.out'
+IS_PARALLEL=0
+DEAD_HOSTS=0
+#### params_end
+# print (sys.argv)
+
+AllOptions= [
+'help',
+'solutions=',
+'output=',
+'symfile=',
+'parallel',
+'steps=',
+'ALPHA=',
+'omega=',
+'load='
+]
+OptionsLetters = []
+
+
+def error_message():
+  sys.stdout.write("""Usage: %s 
+  [--parallel] 
+  [--output=NOMEFILE] 
+  [--symfile=NOMEFILE] 
+  [--solutions=NUMBER] 
+  [--steps=NUMBER] 
+  [--ALPHA=FLOAT] 
+  [--omega=LIST OF FLOATS] 
+  [--load=LOAD FILE] 
+  [--help]
+
+			Davide L. Ferrario <ferrario@matapp.unimib.it>
+""" % PROGRAMNAME)
+
+def help_message():
+  error_message()
+
+
+
+
+try:
+   options, xarguments = getopt.getopt(sys.argv[1:], \
+   OptionsLetters , AllOptions )
+   sys.stderr.write("parminpath: we were called with args %s\n" % sys.argv)
+except getopt.error:
+   error_message()
+   sys.exit(1)
+
+
+for a in options[:]:
+        if (a[0] == '--help'):
+                help_message()
+                sys.exit(0)
+
+for a in options[:]:
+        if (a[0] == '--parallel'):
+		IS_PARALLEL=1
+		options.remove(a)
+                break
+
+for a in options[:]:
+     if ((a[0] == '--solutions') and (a[1] != '')):
+         MAXSOLUTIONS = string.atoi(a[1])
+         options.remove(a)
+         break
+     elif ((a[0] == '--solutions') and (a[1] == '')):
+         print a[0]+' argument missing!'
+         sys.exit(1)
+
+
+for a in options[:]:
+     if ((a[0] == '--output') and (a[1] != '')):
+         OUTFILE = os.path.abspath(os.path.expanduser(a[1]))
+         options.remove(a)
+         break
+     elif ((a[0] == '--output') and (a[1] == '')):
+         print a[0]+' expects an argument'
+         sys.exit(1)
+
+
+for a in options[:]:
+     if ((a[0] == '--symfile') and (a[1] != '')):
+         SYMFILE = os.path.abspath(os.path.expanduser(a[1]))
+         options.remove(a)
+         break
+     elif ((a[0] == '--symfile') and (a[1] == '')):
+         print a[0]+' expects an argument'
+         sys.exit(1)
+
+
+for a in options[:]:
+     if ((a[0] == '--steps') and (a[1] != '')):
+         VAR_STEPS = string.atoi(a[1])
+         options.remove(a)
+         break
+     elif ((a[0] == '--steps') and (a[1] == '')):
+         print a[0]+' expects an argument'
+         sys.exit(1)
+
+
+for a in options[:]:
+     if ((a[0] == '--ALPHA') and (a[1] != '')):
+         VAR_ALPHA = string.atof(a[1] )
+         options.remove(a)
+         break
+     elif ((a[0] == '--ALPHA') and (a[1] == '')):
+         print a[0]+' expects an argument'
+         sys.exit(1)
+
+
+for a in options[:]:
+     if ((a[0] == '--omega') and (a[1] != '')):
+         VAR_OMEGA = eval(a[1])
+         options.remove(a)
+         break
+     elif ((a[0] == '--omega') and (a[1] == '')):
+         print a[0]+' expects an argument'
+         sys.exit(1)
+
+
+for a in options[:]:
+     if ((a[0] == '--load') and (a[1] != '')):
+         VAR_LOAD = a[1]
+         options.remove(a)
+         break
+     elif ((a[0] == '--load') and (a[1] == '')):
+         print a[0]+' expects an argument'
+         sys.exit(1)
+
+
+
+
+
+def master():
+  sys.stderr.write("[MASTER]: processor %d -- %d -- node %s\n" %(MPI_myid, MPI_numproc, MPI_node))
+  numCompleted=0
+  numFailed=0
+  AllPaths=[]
+  ## myx=minpath(SYMFILE)
+  fd=open(VAR_LOAD,'r')
+  src_myx=pickle.load(fd)
+  fd.close()
+  # myx.steps=VAR_STEPS
+  # myx.omega=VAR_OMEGA
+  # myx.ALPHA=VAR_ALPHA
+  if type(src_myx) != type( [] ):
+    todo_list=[src_myx.copy() for y in range(MAXSOLUTIONS) ]
+  else:
+    todo_list=src_myx * MAXSOLUTIONS
+  #send the first works
+  FirstBound=min(MPI_numproc-1,len(todo_list) )
+  
+  for i in range( FirstBound ):
+    try:
+      pypar.send(todo_list[i],i+1)
+    except:
+      sys.stderr.write("[*** failed pypar_send at index i=%i]\n" % i)
+  
+  for i in range(MPI_numproc-1,len(todo_list)):
+   try:
+    tmpvar,status=pypar.receive(pypar.any_source,return_status=True)
+    sys.stderr.write("received from node %i: %s\n" % (status.source,str(tmpvar)))
+    AllPaths = AllPaths + [tmpvar]
+    numCompleted += 1
+    sys.stderr.write("[numCompleted= %i/%i -- numFailed=%i]\n" % (numCompleted,len(todo_list),numFailed))
+    pypar.send(todo_list[i],status.source)
+   except:
+    numFailed += 1
+    sys.stderr.write("[*** failed pypar_send/receive at index i=%i]\n" % i)
+
+
+  #now receive the answers...
+  while(numCompleted + numFailed < len(todo_list) -DEAD_HOSTS):
+   try:
+    tmpvar,status=pypar.receive(pypar.any_source,return_status=True)
+    sys.stderr.write("received from node %i: %s\n" % (status.source,str(tmpvar)))
+    AllPaths = AllPaths + [tmpvar]
+    numCompleted += 1
+    sys.stderr.write("[numCompleted= %i/%i -- numFailed=%i]\n" % (numCompleted,len(todo_list), numFailed ))
+   except:
+    numFailed += 1
+    sys.stderr.write("[*** failed final pypar_send/receive at index i=%i]\n" % numCompleted)
+
+
+  #now finish...
+  for i in range(1, MPI_numproc):
+     try:
+        pypar.send('QUIT',i)
+     except:
+        sys.stderr.write("[*** failed QUITTING!]\n")
+  outfile_fd=open(OUTFILE,'w')
+  pickle.dump(AllPaths,outfile_fd)	
+  sys.stderr.write("file %s created...\n" % OUTFILE)
+  outfile_fd.close()
+  return
+
+def slave():
+  sys.stderr.write( "[SLAVE %d]: processor %d -- %d -- node %s\n" %(MPI_myid, MPI_myid, MPI_numproc, MPI_node))
+  while 1:
+    result = pypar.receive(0)
+    if (result == 'QUIT'):
+            return
+    else:
+            slave_x=result
+	    ## slave_x.new()
+	    try:
+	      for command in slave_x.TODOLIST:
+	        sys.stderr.write("[SLAVE %d] node %s: %s\n" % (MPI_myid,MPI_node, ("executing command " + command ) ) )
+	        if command != "": eval("slave_x." + command)
+              pypar.send(slave_x, 0)
+	    except Exception,v:
+	      sys.stderr.write("[SLAVE %d] node %s: %s (Exception:\n ==>%s)\n" % (MPI_myid,MPI_node,"failed!", v) )
+	      sys.exit(1)
+  return
+
+if IS_PARALLEL:
+  MPI_myid =    pypar.rank()
+  MPI_numproc = pypar.size()
+  MPI_node =    pypar.get_processor_name()
+
+
+  if MPI_myid == 0:
+        master()
+  else:
+        slave()
+  pypar.finalize()
+  # sys.stderr.write("MPI environment finalized.\n")
+  sys.exit(0)
+else:
+  #launch parallel code...
+  ## how many are the nodes?
+  global NUM_PARNODES
+  numNodes=min(NUM_PARNODES,MAXSOLUTIONS+1)
+  if numNodes <= 1:
+    sys.stderr.write("not enough room...\n")
+    pypar.finalize()
+    sys.exit(1)
+  sys.stderr.write("now starting %s on %i nodes...\n" % (PROGRAMNAME,numNodes) )
+  # aa=os.system("""qrsh -pe minorb %i -V -cwd mpirun %s --parallel --output=%s --solutions=%i   --load=%s """ % (numNodes, PROGRAMNAME, OUTFILE, MAXSOLUTIONS, VAR_LOAD ) )
+  aa=os.system("""mpirun -np %i --hostfile %s  %s --parallel --output=%s --solutions=%i   --load=%s """ % (numNodes, HostFile, PROGRAMNAME, OUTFILE, MAXSOLUTIONS, VAR_LOAD ) )
+  if aa:
+    sys.stderr.write("ERROR %i!\n" % aa)
+  sys.stderr.write("...done!\n")
+  pypar.finalize()
+  sys.exit(0)

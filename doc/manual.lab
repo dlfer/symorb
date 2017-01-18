@@ -1,0 +1,51 @@
+\makelabel {symorb:introduction}{2}
+\makelabel {symorb:symorb manual}{1}
+\makelabel {symorb:main commands}{1.1}
+\makelabel {symorb:lagsymmetrygroup}{1.1.1}
+\makelabel {symorb:trivialkertau}{1.1.2}
+\makelabel {symorb:minorbinitstring}{1.1.3}
+\makelabel {symorb:minorbinfostring}{1.1.4}
+\makelabel {symorb:makeminorbsymfile}{1.1.5}
+\makelabel {symorb:alllsgtk }{1.1.6}
+\makelabel {symorb:utilities, properties and attributes}{1.2}
+\makelabel {symorb:rotationmatrixdim2}{1.2.1}
+\makelabel {symorb:rotationmatrixdim3}{1.2.2}
+\makelabel {symorb:istyperdirection }{1.2.3}
+\makelabel {symorb:istyper }{1.2.4}
+\makelabel {symorb:transitivedecomposition}{1.2.5}
+\makelabel {symorb:istransitivelsg}{1.2.6}
+\makelabel {symorb:isvalidlsg}{1.2.7}
+\makelabel {symorb:iscoercive}{1.2.8}
+\makelabel {symorb:hasalwayscollisions}{1.2.9}
+\makelabel {symorb:actiontype}{1.2.10}
+\makelabel {symorb:isredundant}{1.2.11}
+\makelabel {symorb:grouporder}{1.2.12}
+\makelabel {symorb:kerneltauorder}{1.2.13}
+\makelabel {symorb:an example session}{1.3}
+\makelabel {symorb:example of generating file}{1.4}
+\makelabel {symorb:generating lsgs}{1.5}
+\makelabel {symorb:lagsymmetrygroupchars}{1.5.1}
+\makelabel {symorb:makelsgfromchars}{1.5.2}
+\makelabel {symorb:makeactions}{1.5.3}
+\makelabel {symorb:minpath: an interactive optimization program}{2}
+\makelabel {symorb:main commands}{2.1}
+\makelabel {symorb:x=minpath}{2.1.1}
+\makelabel {symorb:x.info}{2.1.2}
+\makelabel {symorb:x.new}{2.1.3}
+\makelabel {symorb:x.relax}{2.1.4}
+\makelabel {symorb:x.relax}{2.1.5}
+\makelabel {symorb:x.newton}{2.1.6}
+\makelabel {symorb:x.view}{2.1.7}
+\makelabel {symorb:x.reshape}{2.1.8}
+\makelabel {symorb:x.load}{2.1.9}
+\makelabel {symorb:x.write}{2.1.10}
+\makelabel {symorb:x.printsol}{2.1.11}
+\makelabel {symorb:x.dump}{2.1.12}
+\makelabel {symorb:x.action}{2.1.13}
+\makelabel {symorb:x.howsol}{2.1.14}
+\makelabel {symorb:x.withcoll}{2.1.15}
+\makelabel {symorb:a database of planar symmetry groups}{2.2}
+\makelabel {symorb:an example session}{2.3}
+\makelabel {symorb:parallel cluster}{2.4}
+\makelabel {symorb:bibliography}{1}
+\makelabel {symorb:index}{2}

@@ -1,0 +1,46 @@
+\indexentry {Main commands@Main commands|indexit}{4}
+\indexentry {LagSymmetryGroup@`LagSymmetryGroup'}{4}
+\indexentry {TrivialKerTau@`TrivialKerTau'}{4}
+\indexentry {MinorbInitString@`MinorbInitString'}{4}
+\indexentry {MinorbInfoString@`MinorbInfoString'}{4}
+\indexentry {MakeMinorbSymFile@`MakeMinorbSymFile'}{4}
+\indexentry {AllLSGTK @`AllLSGTK '}{4}
+\indexentry {Utilities, properties and attributes@Utilities, properties and attributes|indexit}{4}
+\indexentry {RotationMatrixDim2@`RotationMatrixDim2'}{4}
+\indexentry {RotationMatrixDim3@`RotationMatrixDim3'}{4}
+\indexentry {IsTypeRDirection @`IsTypeRDirection '}{5}
+\indexentry {IsTypeR @`IsTypeR '}{5}
+\indexentry {TransitiveDecomposition@`TransitiveDecomposition'}{5}
+\indexentry {IsTransitiveLSG@`IsTransitiveLSG'}{5}
+\indexentry {IsValidLSG@`IsValidLSG'}{5}
+\indexentry {IsCoercive@`IsCoercive'}{5}
+\indexentry {HasAlwaysCollisions@`HasAlwaysCollisions'}{5}
+\indexentry {ActionType@`ActionType'}{5}
+\indexentry {IsRedundant@`IsRedundant'}{5}
+\indexentry {GroupOrder@`GroupOrder'}{5}
+\indexentry {KernelTauOrder@`KernelTauOrder'}{5}
+\indexentry {An Example Session@An Example Session|indexit}{5}
+\indexentry {Example of generating file@Example of generating file|indexit}{6}
+\indexentry {Generating LSGs@Generating LSGs|indexit}{7}
+\indexentry {LagSymmetryGroupCHARS@`LagSymmetryGroupCHARS'}{7}
+\indexentry {MakeLSGfromCHARS@`MakeLSGfromCHARS'}{7}
+\indexentry {MakeActions@`MakeActions'}{7}
+\indexentry {Main commands@Main commands|indexit}{8}
+\indexentry {x=minpath@`x=minpath'}{8}
+\indexentry {x.info@`x.info'}{8}
+\indexentry {x.new@`x.new'}{8}
+\indexentry {x.relax@`x.relax'}{8}
+\indexentry {x.relax@`x.relax'}{8}
+\indexentry {x.newton@`x.newton'}{9}
+\indexentry {x.view@`x.view'}{9}
+\indexentry {x.reshape@`x.reshape'}{9}
+\indexentry {x.load@`x.load'}{9}
+\indexentry {x.write@`x.write'}{9}
+\indexentry {x.printsol@`x.printsol'}{9}
+\indexentry {x.dump@`x.dump'}{9}
+\indexentry {x.action@`x.action'}{9}
+\indexentry {x.howsol@`x.howsol'}{9}
+\indexentry {x.withcoll@`x.withcoll'}{9}
+\indexentry {A database of planar symmetry groups@A database of planar symmetry groups|indexit}{9}
+\indexentry {An example session@An example session|indexit}{10}
+\indexentry {Parallel cluster@Parallel cluster|indexit}{11}

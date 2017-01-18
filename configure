@@ -1,0 +1,71 @@
+#!/bin/bash
+
+echo -n "Checking GAPPATH '$GAPPATH'" ...
+if [ ! -e "$GAPPATH"/sysinfo.gap ]; then
+  echo "sysinfo.gap in '${GAPPATH}' not found"
+  echo "first set the env variable 'GAPPATH' please."
+  exit
+fi
+echo "done."
+
+echo -n "configuring Makefile.local..."
+cat $GAPPATH/sysinfo.gap > Makefile.local
+echo "GAPPATH=${GAPPATH}" >> Makefile.local
+echo "MINORBDIR=f90/minorb4" >> Makefile.local
+echo "ORBVIEWDIR=src/orbview" >> Makefile.local
+echo "PYTHONLOCAL=src/python.local" >> Makefile.local
+echo "done."
+
+echo -n "Checking python..."
+if [ -e "`type -p python2.7`" ]; then
+    if [ -e "`type -p env`" ]; then 
+	echo "#!`type -p env` python2.7" > src/python.local
+    else
+	echo "#!`type -p python2.7`" > src/python.local
+    fi
+else
+    cat <<__EOF__
+    No, without python 2.7 this package does not work.
+    Please install it http://www.python.org
+__EOF__
+    exit 127
+fi
+echo "done."
+
+echo -n "checking if geomview exists..."
+if [ -e "`type -p geomview`" ]; then
+	echo "yes."
+else
+	echo 
+	echo "    *** geomview  not found."
+	echo "    *** use orbview --preview instead"
+fi
+
+echo -n "checking if gnuplot exists..."
+if [ -e "`type -p gnuplot`" ]; then
+	echo "yes."
+else
+	echo 
+	echo "    *** gnuplot not found."
+	echo "    *** orbview may not work."
+fi
+
+
+echo -n "checking if gzip exists..."
+if [ -e "`type -p gzip`" ]; then
+	echo "yes."
+else
+	echo
+	echo "    *** gzip not found."
+	echo "    *** gzipped datafiles will not be available"
+fi
+
+cat <<_EOF_ 
+==>configuration done.
+
+    *** If you need to compile minorb:                                 ***
+    *** please edit f90/minorb4/makefile to configure the F90 compiler ***
+    *** and the IMSL library path                                      ***
+
+_EOF_
+

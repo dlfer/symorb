@@ -1,0 +1,69 @@
+#!/usr/bin/python2.7 -i
+
+r"""
+minpath Class:
+
+Davide L. Ferrario <ferrario@matapp.unimib.it>
+
+"""
+import os
+if 'SYMORBDIR' in os.environ:
+  DISTDIR=os.environ['SYMORBDIR']
+else:
+  DISTDIR=os.environ['HOME'] + "/local/symorb"
+
+import sys
+sys.path=sys.path+[DISTDIR + '/py']
+import min_path
+from min_path.mod_minpath import *
+from min_path.mod_remjob import *
+from min_path.syms import *
+from min_path.mod_rpyc_minpath import *
+from min_path.myconf import REMOTE_MINORB
+
+import pickle
+import time
+import string
+import re
+
+import subprocess
+
+import readline
+import rlcompleter
+if(sys.platform == 'darwin'):
+                readline.parse_and_bind ("bind ^I rl_complete")
+else:
+                readline.parse_and_bind("tab: complete")
+
+
+def set_up_remote_service(host):
+ global SharedToken, RemoteServer_porta
+ RemoteServer_porta,SharedToken=start_remote_server(host)
+ min_path.mod_rpyc_minpath.RemoteServer_porta=RemoteServer_porta
+ min_path.mod_rpyc_minpath.SharedToken=SharedToken
+ # make the tunnel...
+ # PP=subprocess.Popen("ssh -f -L %s:localhost:%s %s -N" % (RemoteServer_porta,RemoteServer_porta,host) , shell=True,bufsize=8192,stdout=subprocess.PIPE,stderr=subprocess.PIPE, close_fds=True )
+ if os.uname()[1] != host :
+  print  "tunneling..."
+  os.system("ssh -f -L %s:localhost:%s %s -N" % (RemoteServer_porta,RemoteServer_porta,host))
+
+
+def interactive():
+	global SharedToken, RemoteServer_porta
+	if REMOTE_MINORB:
+         print "setting up remote service..."
+	 set_up_remote_service('lkl01')
+	# change interactively:
+	sys.ps1="MinorbShell > "
+	print """minpath -- beginning at %s
+symfiles:
+""" % os.popen('date','r').read()
+	scan_files('.')
+
+
+
+############################ parse_db part...
+
+if __name__ == "__main__":
+    interactive()
+

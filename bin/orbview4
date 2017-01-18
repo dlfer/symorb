@@ -1,0 +1,1641 @@
+#!/usr/bin/env python
+########################################################################
+########################################################################
+########################################################################
+###		
+### Author: Davide L. Ferrario
+###		
+###         Dipartimento di Matematica  -- Milano Bicocca
+###
+###         <ferrario@matapp.unimib.it>		
+###
+###         Thu Nov 18 14:39:17 CET 2004
+###
+########################################################################
+########################################################################
+########################################################################
+
+VERSION=1.52
+
+
+# import curses, traceback, string, os
+# import sys, getopt, string 
+# import math
+import traceback, string, os, sys, getopt, math, shutil, gzip
+import random as whrandom
+
+########################################################################
+########################################################################
+###
+### data
+###
+########################################################################
+########################################################################
+SIZES = [ (160,120), (320,240), (640,480), (800,600)]
+SIZE = 3 
+BGColor = 'Black'
+oogl_sphere_scale=0.08
+## collision_scale=0.11
+collision_scale=0.1
+
+ONLY_ONE_FRAME = 0 #no 
+HAS_MAXFRAMES=0
+MAXFRAMES=10000
+FRAME=0
+FRAMES_STEP=1
+CAMERA_SCALE = 1.0 # default
+VERBOSE = 1 #no
+TMPDIR = os.curdir
+TMPDIR = '/tmp'
+
+# to add to the options  if necessary...
+SPHERE_SIZE= 1.0/30
+PATH_RADIUS= 1.0/120
+
+########################################################################
+########################################################################
+small_epsilon=10.0E-10
+
+MAX_LOOPS=100 
+# max loops done by only_animate (it is able now to trap Keyboard Interrupt, probably...)
+
+########################################################################
+########################################################################
+###
+### names
+###
+########################################################################
+########################################################################
+pressedA=''
+
+
+########################################################################
+########################################################################
+
+BASEPOVFILE = 'tmpfile'
+BASETMPFIG = 'tmpfig_'
+TMPPOVFILE=BASEPOVFILE+'.pov'
+PROGRAMNAME = string.split(sys.argv[0],'/')[-1]
+LONG_PROGRAMNAME = sys.argv[0]
+done = '\033[70G [\033[32mdone\033[m]\n'
+not_done = '\033[70G [\033[31m\033[1mfailed\033[m]\n'
+uname_date = os.popen('uname -a').read()
+ONLY_DATA=0
+ONLY_OOGL=0
+ONLY_ANIMATE=0
+ONLY_POV=0
+ONLY_ISROTATION=0
+ONLY_ISCOLLISION=0
+ONLY_EPS=0
+WITHOFF=0
+SLEEPFOR=0.0
+
+GEOMVIEW_COMMAND="geomview -wpos %i,%i@1,1 -nopanels -c -"  % SIZES[2]
+
+HAS_POV_FILE=0
+PREVIEW = 0 
+HAS_OUTPUT_FILES=0
+
+Color = [ 'OrangeRed' , 'SummerSky' , 'Yellow', 'Green', ' Cyan', 'Magenta' , 'Brown']
+BColor = [ 'OrangeRed*0.72' , 'SummerSky*0.72' , 'Yellow*0.72', 'Green*0.72', 'Cyan*0.72', 'Magenta * 0.72', 'Brown * 0.72']
+
+########################################################################
+########################################################################
+##
+## reading arguments...
+##
+########################################################################
+########################################################################
+
+AllOptions = [ \
+'help'  , \
+'tmpdir=' , \
+'output='  , \
+'bgcolor=' ,  \
+'frame=' , \
+'size=',        \
+'camerascale=' , \
+'verbose', \
+'data' ,\
+'extrapovfile=',\
+'fstep=',\
+'maxframes=',\
+'preview',\
+'oogl',\
+'animate',\
+'pov',\
+'isrotation',\
+'iscollision',\
+'withoff',\
+'sleepfor=',\
+'cs='
+ ]
+
+
+OptionsLetters = 'ht:o:b:f:s:c:vp'
+
+def help_message():
+	print "Usage: %s [OPTIONS] ... DATAFILE " % PROGRAMNAME
+	print \
+"""Make rendered animations or single frames of the periodic orbit provided by the file DATAFILE. The format of an orbit in DATAFILE is the following: 
+N blocks consisting of 3 coordinates in each line, for STEPS lines; 
+the end of a block is given by some blank lines. #'s are comments.
+Gzipped datafiles can be given, provided that the extension is '.daz' or '.gz'.
+
+options: 
+-h, --help		: this message
+-v, --verbose     	: verbose 
+-t, --tmpdir=DIR  	: temporary directory
+-o, --output=FILE  	: output file
+-b, --BGColor=COLOR  	: background color
+-f, --frame=FRAME  	: make only the frame number FRAME in [0,STEPS-1]
+-s, --size=SIZE	  	: SIZE is an integer in [0,1,2,3]
+-c, --camerascale=SCALE	: fnumber (default is 1.0)
+--data                  : only output data
+--extrapovfile=FILE     : further objects in a povray file 
+--fstep=FRAMES_STEP     : plot only every frames multiples of FRAMES_STEP
+--maxframes=FRAMES  	: maximum number of FRAMES 
+-p, --preview           : open a GNUPLOT preview of DATAFILE
+--oogl                  : make an OOGL GEOMVIEW file of the paths and open a
+                          GEOMVIEW session if not --frame
+--animate               : GEOMVIEW module to animate the orbits
+--pov                   : only output the POVFILE
+--isrotation            : check whether it is a rotation orbit
+--iscollision           : check whether it is a collision orbit
+--withoff		: with OFF polygons (interaction)
+--sleepfor=TIME		: sleep-for TIME seconds
+--cs=COLLISION_SCALE    : show a collision when distance is < cs%
+
+key seqs: AA (begin record) A (end record) QQ (quit)
+
+			  Davide L. Ferrario <ferrario@matapp.unimib.it>
+"""
+
+def error_message():
+	print "options error!"
+	# print "type " + sys.argv[0] + " -h for help"
+	print "type " + PROGRAMNAME + " -h for help"
+
+try:
+	options, xarguments = getopt.getopt(sys.argv[1:], \
+	OptionsLetters , AllOptions )
+except getopt.error:
+	error_message()
+	sys.exit(1)
+
+# print "options = ", options
+# print "xarguments = ", xarguments
+if len(xarguments)>0:
+	namefile = xarguments[0]
+else:
+	# print 'please enter namefile' 
+	# namefile = sys.stdin.readline() 
+	# namefile = string.split( namefile )[0]
+	help_message()
+	sys.exit(1)
+basename=string.join(string.split(namefile,'.')[:-1],'.')
+if basename == '':
+  MOVIENAME = 'film.avi' # default 
+else:
+  MOVIENAME = basename + '.avi'
+
+for a in options[:]:
+	if ((a[0] == '-h') or (a[0] == '--help')):
+        	help_message()
+		sys.exit(0)
+
+for a in options[:]:
+     if (((a[0] == '-t') or (a[0] == '--tmpdir')) and (a[1] != '')):
+         TMPDIR = a[1]
+         options.remove(a)
+         break
+     elif (((a[0] == '-t') or (a[0] == '--tmpdir')) and (a[1] == '')):
+         print a[0]+' argument missing!'
+         sys.exit(1)                                                           
+
+
+for a in options[:]:
+     if (((a[0] == '-b') or (a[0] == '--bgcolor')) and (a[1] != '')):
+         BGColor = a[1]
+         options.remove(a)
+         break
+     elif (((a[0] == '-b') or (a[0] == '--bgcolor')) and (a[1] == '')):
+         print a[0]+' argument missing!'
+         sys.exit(1)                                                           
+
+for a in options[:]:
+     if ((a[0] == '--fstep') and (a[1] != '')):
+         FRAMES_STEP = string.atoi(a[1])
+         options.remove(a)
+         break
+     elif ((a[0] == '--fstep') and (a[1] == '')):
+         print a[0]+' argument missing!'
+         sys.exit(1)                                                           
+
+for a in options[:]:
+     if ((a[0] == '--maxframes') and (a[1] != '')):
+         MAXFRAMES = string.atoi(a[1])
+         HAS_MAXFRAMES=1
+	 options.remove(a)
+         break
+     elif ((a[0] == '--maxframes') and (a[1] == '')):
+         print a[0]+' argument missing!'
+         sys.exit(1)                                                           
+
+for a in options[:]:
+     if (((a[0] == '-f') or (a[0] == '--frame')) and (a[1] != '')):
+         FRAME = string.atoi(a[1])
+	 ONLY_ONE_FRAME=1 #yes
+	 MOVIENAME = basename + '.ppm'
+	 HAS_OUTPUT_FILES=1
+         options.remove(a)
+         break
+     elif (((a[0] == '-f') or (a[0] == '--frame')) and (a[1] == '')):
+         print a[0]+' expects an argument'
+         sys.exit(1)                                                           
+
+for a in options[:]:
+     if (((a[0] == '-s') or (a[0] == '--size')) and (a[1] != '')):
+         SIZE = string.atoi(a[1])
+	 XSIZE = SIZES[SIZE][0]
+	 YSIZE = SIZES[SIZE][1]
+	 GEOMVIEW_COMMAND="geomview -wpos %i,%i@1,1 -nopanels -c -"  % (XSIZE,YSIZE)
+         options.remove(a)
+         break
+     elif (((a[0] == '-s') or (a[0] == '--size')) and (a[1] == '')):
+         print a[0]+' expects an argument'
+         sys.exit(1)                                                           
+
+for a in options[:]:
+     if (((a[0] == '-c') or (a[0] == '--camerascale')) and (a[1] != '')):
+         CAMERA_SCALE= string.atof(a[1])
+         options.remove(a)
+         break
+     elif (((a[0] == '-c') or (a[0] == '--camerascale')) and (a[1] == '')):
+         print a[0]+' expects an argument'
+         sys.exit(1)                                                           
+
+
+for a in options[:]:
+     if (((a[0] == '--cs')) and (a[1] != '')):
+         collision_scale= string.atof(a[1])
+	 # sys.stderr.write("collision_scale= %f\n" % collision_scale)
+         options.remove(a)
+         break
+     elif (((a[0] == '--cs')) and (a[1] == '')):
+         print a[0]+' expects an argument'
+         sys.exit(1)                                                           
+
+for a in options[:]:
+     if ((a[0] == '--sleepfor') and (a[1] != '')):
+         SLEEPFOR= string.atof(a[1])
+         options.remove(a)
+         break
+     elif ( (a[0] == '--sleepfor') and (a[1] == '') ):
+         print a[0]+' expects an argument'
+         sys.exit(1)                                                           
+
+for a in options[:]:
+     if ((a[0] == '--extrapovfile') and (a[1] != '')):
+         POV_FILE = os.path.abspath(os.path.expanduser(a[1]))
+	 HAS_POV_FILE = 1
+         options.remove(a)
+         break
+     elif ((a[0] == '--extrapovfile') and (a[1] == '')):
+         print a[0]+' expects an argument'
+         sys.exit(1)                                                           
+
+for a in options[:]:
+     if (((a[0] == '-v') or (a[0] == '--verbose')) ):
+         VERBOSE = 1
+         options.remove(a)
+         break
+
+for a in options[:]:
+     if (((a[0] == '-p') or (a[0] == '--preview')) ):
+         PREVIEW = 1
+         options.remove(a)
+         break
+
+for a in options[:]:
+     if (a[0] == '--data') :
+         ONLY_DATA = 1
+         options.remove(a)
+         break
+
+
+for a in options[:]:
+     if (a[0] == '--oogl') :
+         ONLY_OOGL = 1
+         options.remove(a)
+         break
+
+for a in options[:]:
+     if (a[0] == '--withoff') :
+         WITHOFF=1
+         options.remove(a)
+         break
+
+for a in options[:]:
+     if (a[0] == '--animate') :
+         ONLY_ANIMATE = 1
+         options.remove(a)
+         break
+
+for a in options[:]:
+     if (a[0] == '--pov') :
+         ONLY_POV = 1
+	 MOVIENAME = basename + '.pov'
+	 HAS_OUTPUT_FILES=1
+         options.remove(a)
+         break
+
+for a in options[:]:
+     if (a[0] == '--isrotation') :
+         ONLY_ISROTATION = 1
+         options.remove(a)
+         break
+
+for a in options[:]:
+     if (a[0] == '--iscollision') :
+         ONLY_ISCOLLISION = 1
+         options.remove(a)
+         break
+
+for a in options[:]:
+     if (((a[0] == '-o') or (a[0] == '--output')) and (a[1] != '')):
+        MOVIENAME = a[1]
+	HAS_OUTPUT_FILES=1
+        options.remove(a)
+        break
+     elif (((a[0] == '-o') or (a[0] == '--output')) and (a[1] == '')):
+         print a[0]+' argument missing!'
+         sys.exit(1)                                                           
+
+
+if len(options)>0:
+	error_message()
+	print "not all the options were processed!"
+	sys.exit(1)
+
+
+if not os.path.exists(namefile):
+	print "file `` " + namefile + " '' does not exists!"
+	sys.exit(1)
+
+if os.path.getsize(namefile) == 0:
+	print "file `` " + namefile + " '' has size 0!"
+	sys.exit(1)
+
+# now get the extension... assuming everything else is ok, and 
+# .daz is the compressed text format (gzip level 9)
+
+extension=(string.split(namefile,'.'))[-1] 
+if extension=='daz' or extension=='gz':
+	IS_COMPRESSED=1
+else:
+	IS_COMPRESSED=0
+
+if (HAS_OUTPUT_FILES and (string.split(MOVIENAME,'.'))[-1] == 'eps'):
+	ONLY_EPS=1
+
+
+########################################################################
+# doing default...
+if not (HAS_OUTPUT_FILES or ONLY_ISROTATION or ONLY_ISCOLLISION or PREVIEW or ONLY_DATA or ONLY_ANIMATE or ONLY_POV): ONLY_OOGL = 1
+
+## GEOMVIEW_AVAILABLE=not os.system('echo "(exit)" | geomview -c - 2>/dev/null 1>/dev/null ')
+## if (not GEOMVIEW_AVAILABLE): 
+##	ONLY_OOGL=0
+##	PREVIEW=1
+
+########################################################################
+
+XSIZE = SIZES[SIZE][0]
+YSIZE = SIZES[SIZE][1]
+
+
+########################################################################
+########################################################################
+## canceled Library_Path=/usr/lib/povray3
+## canceled Library_Path=/usr/lib/povray3/include
+## canceled include "colors.inc"
+## canceled include   "textures.inc"
+## canceled include   "metals.inc"
+
+inipovfile_data = """;; File automatically generated by %s
+;; """ % PROGRAMNAME + uname_date + """
+Width =   """+ `XSIZE`  +"""
+Height =  """ + `YSIZE` + """ 
+Pause_when_Done = off
+Bounding_Threshold = 3
+Test_Abort=On
+Test_Abort_Count=100
+Output_File_Type=PPM
+Quality=11"""
+## this is no longer used... see below INIPOVFILE_OPTIONS... for the 
+## corresponding options...
+
+	
+POV_COMMAND = 'povray'
+POV_OPTIONS = '' # '+QR' ## radiosity...
+POV_IN      = '+I-'
+POV_OUT     = '+O-'
+POV_VERBOSE = '2>/dev/null'
+POV_PIPE    = '| ppmtoyuvsplit ' + BASETMPFIG+'%i'
+INIPOVFILE_OPTIONS='+W%i +H%i -P +MB3 +X100 +FP +Q11'  % (XSIZE, YSIZE) 
+
+if (VERBOSE): POV_VERBOSE=''
+if (ONLY_ONE_FRAME): 
+	POV_OUT='+O%s' % MOVIENAME
+	POV_PIPE=''
+POV_COMMAND = POV_COMMAND + ' ' + \
+              POV_OPTIONS + ' ' + \
+              POV_IN      + ' ' + \
+              POV_OUT     + ' ' + \
+              INIPOVFILE_OPTIONS  + ' ' + \
+              POV_VERBOSE + ' ' + \
+              POV_PIPE
+
+
+if (VERBOSE): 
+	MPEG_VERBOSE = ''
+else:
+	MPEG_VERBOSE = '2>/dev/null  1>/dev/null' 
+
+MPEG_PROGRAM= 'mpeg'
+MPEG_OPTIONS = '-p 1 -a 0 -b %i -PF'
+MPEG_SIZE    = '-h '+`XSIZE`+' -v ' +`YSIZE`
+MPEG_OUT     = '-s '+ MOVIENAME  
+MPEG_COMMAND = MPEG_PROGRAM + ' ' + \
+               MPEG_OPTIONS + ' ' + \
+               MPEG_SIZE    + ' ' + \
+               BASETMPFIG   + ' ' + \
+               MPEG_OUT     + ' ' + \
+               MPEG_VERBOSE
+
+
+
+########################################################################
+########################################################################
+
+def dist(flist,slist):
+	return math.sqrt( (flist[0]-slist[0])**2 + (flist[1]-slist[1])**2 +(flist[2] - slist[2])**2 )	
+
+def average(thispath):
+	average=[0.0,0.0,0.0]
+	for j in range(len(thispath)):
+		for i in range(3):
+			average[i]=average[i] + 1.0*thispath[j][i]/len(thispath)
+	return average
+
+def distances(thispath,point):
+	norms=''
+	for i in range(len(thispath)):
+		norms = norms +`dist(thispath[i],point)`+'\n'       
+	return norms
+
+def numerical_distances(thispath,point):
+	norms=[]
+	for i in range(len(thispath)):
+		norms.append(dist(thispath[i],point))      
+	return norms
+
+def speeds(thispath):
+	result =''
+	for i in range(len(thispath)-1):
+		result = result + `dist(thispath[i],thispath[i+1])`+'\n'
+	# result = result + `dist(thispath[len(thispath)-1],thispath[0])`+'\n'
+	return result
+
+  
+########################################################################
+########################################################################
+##
+##
+##
+########################################################################
+########################################################################
+if IS_COMPRESSED:
+	fd=gzip.open( namefile, 'rb')
+else:
+	fd = open( namefile , 'r')
+
+original_line = '#'
+nowhere_land = 1 
+dim = 0 
+body = 0
+time = 0
+steps = 0 
+path = []
+data = []
+maxima = [ 0, 0 , 0 ]
+comments = []
+
+while original_line != '':
+	original_line = fd.readline()
+	if string.count(original_line,'#') > 0: 
+		comments.append(original_line)
+		continue
+	line=string.replace(original_line,"\n",'')
+	fields=string.split(line)
+		
+	# chunck of blank lines... 
+	if len(fields) == 0: 
+		nowhere_land=1
+		if (time > 0) and (steps == 0 ):
+			 steps = time
+		elif (time != steps):
+			print "fatal error! steps not homogeneous!"
+			print "check the data file!!!" 
+			sys.exit(1)
+		continue
+	elif (dim == 0): 
+		dim = len(fields)
+	elif (dim != len(fields)):
+		print "fatal error: dimension error!"
+		sys.exit(1)
+ 
+	if (len(fields) > 0 ):
+		if nowhere_land == 1:
+			nowhere_land = 0
+			if (body >0 ): data.append(path)
+			path=[]
+			body = body + 1
+			time = 0 
+		time = time + 1	
+	for i in range(0,len(fields),1):
+		fields[i] = string.atof(fields[i])
+		maxima[i] = max( abs(fields[i]), maxima[i])
+	if (dim == 2): fields.append(0)
+	path.append(fields)
+
+if (body >0 ): data.append(path)
+
+NOB = len(data)
+steps = steps
+dim = dim
+if SLEEPFOR==0: SLEEPFOR=2.0/(steps+1)
+
+def doing(str):
+	if VERBOSE: sys.stdout.write(str)
+
+########################################################################
+########################################################################
+##
+## ONLY_ISROTATION
+##
+########################################################################
+########################################################################
+comp_epsilon = 10E-3 * max(maxima)
+
+def euc_norm(x):
+	return math.sqrt(x[0]**2 + x[1]**2 + x[2]**2)
+
+def vector_prod_normalized(x,y):
+	prod =  euc_norm(x) * euc_norm(y)
+	if prod != 0:
+		return [
+			(x[1]*y[2] - x[2]*y[1]) / prod,
+			-(x[0]*y[2] - x[2]*y[0]) / prod,
+			( x[0]*y[1] - x[1]*y[0] ) / prod
+			]
+	else:
+		return [0.0,0.0,0.0]
+
+def diff(x,y):
+	return ( [x[0]-y[0], x[1] - y[1], x[2] - y[2] ] )
+
+def angular_data(path):
+	res=[]
+	for i in range(len(path)-1):
+		res.append(
+vector_prod_normalized (diff(path[i+1],path[i]), path[i])
+)
+	return res
+
+def path_bounds(path):
+        res=[[0,0],[0,0],[0,0]]
+	triple = path[0]
+	for i in range(3):
+		res[i][0] = triple[i]
+		res[i][1] = triple[i]
+	for triple in path:
+		for i in range(3):
+			if triple[i]<res[i][0] : res[i][0] = triple[i]
+			if triple[i]>res[i][1] : res[i][1] = triple[i]
+	return res
+
+def is_point(pb):
+	dists=[]
+	for i in pb: dists.append(i[1] - i[0])
+	return ( max(dists) < comp_epsilon )	
+
+
+if ONLY_ISROTATION:
+	# try to check if the bodies have constant angular_data
+	pbs=[]
+	for path in data:
+		# first check that it is not constant
+		if not is_point(path_bounds(path)):
+			pb=path_bounds(angular_data(path))
+			if not is_point(pb):
+				if (VERBOSE): print "it's not a rotation solution..."
+				sys.exit(0)
+			pbs.append([
+	pb[0][0]+pb[0][1],
+	pb[1][0]+pb[1][1],
+	pb[2][0]+pb[2][1] 
+	])
+	for i in range(1,len(pbs)):
+		if max(diff( pbs[i], pbs[0])) > comp_epsilon :
+			if (VERBOSE): print "it's not a rotation solution..."
+			sys.exit(0)
+	if (VERBOSE): print "it's a rotation solution..."
+	sys.exit(1)   
+
+########################################################################
+########################################################################
+##
+## ISCOLLISION
+##
+########################################################################
+########################################################################
+	
+if ONLY_ISCOLLISION:
+	# if (VERBOSE): sys.stderr.write( "comp_epsilon = "+ `comp_epsilon` + "\n")
+	# first try to see whether in the comments there is PATH_MIN_DIST
+	for cline in comments:
+		if string.count(cline,'PATH_MIN_DIST')>0:
+			tmpline=string.split(cline,'=')[1]
+			path_min_dist=string.atof( string.split(tmpline)[0])
+			if path_min_dist < collision_scale * max(maxima):
+				if (VERBOSE): print "it has collisions... with path_min_dist = ", path_min_dist, "; path_min_dist/max = ", path_min_dist/max(maxima)
+				sys.exit(1)
+			if (VERBOSE): print  "it has not collisions... path_min_dist= ", path_min_dist, "; path_min_dist/max = ", path_min_dist/max(maxima)
+			sys.exit(0)
+	min_en=10.0 * max(maxima)
+	for i in range(NOB):
+		for j in range(i+1,NOB):
+			for k in range(steps):
+				en=euc_norm( diff(data[i][k],data[j][k])) 
+				if en < min_en: min_en=en
+				if en < collision_scale *max(maxima):
+					if (VERBOSE): print "it has collisions... with en= ", en, "; en/max = ", en/max(maxima) 
+					
+					sys.exit(1)
+	if (VERBOSE): print "it has not collisions... min_en= ", min_en, "; min_en/max = ", min_en/max(maxima)
+	sys.exit(0)
+
+########################################################################
+########################################################################
+##
+## PREVIEW
+##
+########################################################################
+########################################################################
+
+
+def print_path(number):
+	res=''
+	for i in range(len(data[number])):
+		res= res + '%f %f %f\n'	% ( data[number][i][0], data[number][i][1], data[number][i][2] )
+	res = res + 'e\n'
+	return res
+
+def print_partial_path(number,start,end):
+	res=''
+	# if end>len(data[number]): end=len(data[number])
+	thispath=data[number][start:(end+1)]
+	for i in range(len(thispath)):
+		res= res + '%f %f %f\n'	% ( thispath[i][0], thispath[i][1], thispath[i][2] )
+	res = res + 'e\n'
+	return res
+
+
+def print_lower_path(number,mmm):
+	res=''
+	# if end>len(data[number]): end=len(data[number])
+	thispath=data[number][:]
+	for i in range(len(thispath)):
+		res= res + '%f %f %f\n'	% ( thispath[i][0], thispath[i][1], -mmm )
+	res = res + 'e\n'
+	return res
+
+def print_left_path(number,mmm):
+	res=''
+	# if end>len(data[number]): end=len(data[number])
+	thispath=data[number][:]
+	for i in range(len(thispath)):
+		res= res + '%f %f %f\n'	% ( thispath[i][0], mmm, thispath[i][2] )
+	res = res + 'e\n'
+	return res
+
+def print_right_path(number,mmm):
+	res=''
+	# if end>len(data[number]): end=len(data[number])
+	thispath=data[number][:]
+	for i in range(len(thispath)):
+		res= res + '%f %f %f\n'	% ( -mmm, thispath[i][1], thispath[i][2] )
+	res = res + 'e\n'
+	return res
+
+
+
+
+def print_conf(index):
+	res=''
+	for i in range(NOB):
+		res=res+'%f %f %f\n' % (data[i][index][0], data[i][index][1], data[i][index][2] )
+	res = res + 'e\n'
+	return res
+	
+
+if PREVIEW:
+	if dim==2: 
+		plot_command='plot [-m:m] [-m:m] '
+
+	elif dim==3:
+		plot_command='splot [-m:m] [-m:m] [-m:m] '
+	else:
+		sys.stderr.write('dimension not fit!\n')
+	gnuplot_header="""
+set size ratio -1;
+set pointsize 2; 
+set grid;
+set nokey;
+m=1.2 * %f;
+""" % (max(maxima))
+	gnuplot_script = plot_command
+	for bn in range(NOB):
+		gnuplot_script = gnuplot_script + " '-' with lines, " 
+	gnuplot_script = gnuplot_script + " '-' with p 9; \n" 
+	for bn in range(NOB):
+		gnuplot_script = gnuplot_script + print_path(bn)
+	# gnuplot_script = gnuplot_script + print_conf(FRAME)
+	pipe = os.popen('gnuplot -noraise -persist','w')
+	# sys.stdout.write(gnuplot_script)
+	pipe.write(gnuplot_header)
+	while 1:
+		for i in range(steps):
+			gnuplot_labels=''
+			for nb in range(NOB):
+				if dim==2: 
+					gnuplot_label='set label %i "  %i" at %f,%f left;\n' %( nb+1, nb +1, data[nb][i][0], data[nb][i][1])
+				else:
+					gnuplot_label='set label %i "  %i" at %f,%f,%f left;\n' %( nb+1, nb +1, data[nb][i][0], data[nb][i][1], data[nb][i][2])
+				gnuplot_labels=gnuplot_labels+ gnuplot_label
+			try:
+				pipe.write(gnuplot_header + gnuplot_labels +  gnuplot_script +  print_conf(i))
+			except KeyboardInterrupt:
+				sys.stdout.write("interrupt... bye!\n")
+				pipe.close()
+				sys.exit(0)
+	pipe.close()
+	# print "press <Return> to exit"
+	# sys.stdin.readline()
+	sys.exit(0)
+
+if ONLY_EPS:
+	mmm=1.3 * max(maxima)
+	MINORB_STEPS=FRAMES_STEP
+	for cline in comments:
+		if string.count(cline,'STEPS')>0:
+			tmpline=string.split(cline,'=')[1]
+			MINORB_STEPS=string.atoi( string.split(tmpline)[0])
+			print "MINORB_STEPS found! = ", MINORB_STEPS
+	if dim==2: 
+		plot_command='plot [-m:m] [-m:m] '
+		border_command='set noborder'
+	elif dim==3:
+		plot_command='splot [-m:m] [-m:m] [-m:m] '
+		border_command='set border 31'
+		border_command='set border 4095'
+		border_command="""set border 127+256+512;
+set xrange [-m:m];
+set yrange [-m:m];
+set zrange [-m:m];
+set noautoscale;"""
+	else:
+		sys.stderr.write('dimension not fit!\n')
+	gnuplot_header="""
+set size ratio -1;
+set pointsize 2; 
+set term postscript eps 22; 
+set output "%s"; 
+set noxtics; set noytics; set noztics;
+# set grid; 
+m=%f;
+%s;
+set nokey;
+""" % ('.tmp' + MOVIENAME, mmm,border_command)
+	for nb in range(NOB):
+		if dim==2: 
+			gnuplot_label='set label "  %i" at %f,%f left;\n' %( nb +1, data[nb][FRAME][0], data[nb][FRAME][1])
+		else:
+			gnuplot_label='set label %i "  %i" at %f,%f,%f left;\n' %( nb+1, nb +1, data[nb][FRAME][0], data[nb][FRAME][1], data[nb][FRAME][2])
+		gnuplot_header=gnuplot_header + gnuplot_label
+	gnuplot_script = plot_command
+	for bn in range(NOB):
+		gnuplot_script = gnuplot_script + " '-' with lines lt 3 lw 1, "
+	for bn in range(NOB):
+		gnuplot_script = gnuplot_script + " '-' with lines lt -1 lw 3, "
+## new one... __HERE__
+ 	for bn in range(NOB):
+		if dim==3: gnuplot_script = gnuplot_script + " '-' with lines lt 12 lw 1, "
+		if dim==3: gnuplot_script = gnuplot_script + " '-' with lines lt 12 lw 1, "
+		if dim==3: gnuplot_script = gnuplot_script + " '-' with lines lt 12 lw 1, "
+
+	gnuplot_script = gnuplot_script + " '-' with p 6, '-' with p 7;\n" 
+	for bn in range(NOB):
+		gnuplot_script = gnuplot_script  +  print_path(bn)
+	for bn in range(NOB):
+		gnuplot_script = gnuplot_script + print_partial_path(bn,FRAME,FRAME+MINORB_STEPS + 1) 
+## new one__HERE__
+	for bn in range(NOB):
+		if dim==3: gnuplot_script = gnuplot_script + print_lower_path(bn,mmm)
+		if dim==3: gnuplot_script = gnuplot_script + print_left_path(bn,mmm)
+		if dim==3: gnuplot_script = gnuplot_script + print_right_path(bn,mmm)
+
+	gnuplot_script = gnuplot_script + print_conf(FRAME) + print_conf(FRAME + MINORB_STEPS + 1)
+	
+	pipe = os.popen('gnuplot','w')
+	# sys.stdout.write(gnuplot_script)
+	pipe.write(gnuplot_header + gnuplot_script)
+	pipe.close()
+	# print "press <Return> to exit"
+	# sys.stdin.readline()
+	try:
+		pipe= os.popen('ps2epsi %s %s' % ('.tmp'+MOVIENAME,MOVIENAME) , 'r')
+		pipe.read()
+		pipe.close()
+		os.remove('.tmp'+MOVIENAME)
+		sys.stdout.write(" ==> file " + MOVIENAME + " generated!\n")
+	except:
+		print "something went wrong with ps2epsi..."
+		sys.exit(1)
+	sys.exit(0)
+	
+
+
+if ONLY_DATA:
+	doing("generating the data files...")
+	path_NOMEFILE='path_data0.qaz'
+	tmpout = open(path_NOMEFILE,'w')
+	for i in range(NOB):
+		path=data[i]
+		av = average(path)
+		tmpout.write('# body number ' + `(i+1)` + ' : distances from ' + `av` + '\n')
+		tmpout.write(distances(path,av))
+		tmpout.write('\n\n')
+	tmpout.flush()
+	tmpout.close()
+	print "\n", path_NOMEFILE, 'creato!'
+	path_NOMEFILE='path_data1.qaz'
+	tmpout = open(path_NOMEFILE,'w')
+	for i in range(NOB):
+		path=data[i]
+		av = [0.0,0.0,0.0]
+		tmpout.write('# body number ' + `(i+1)` + ' : distances from ' + `av` + '\n')
+		tmpout.write(distances(path,av))
+		tmpout.write('\n\n')
+	tmpout.flush()
+	tmpout.close()
+	print path_NOMEFILE, 'creato!'
+	path_NOMEFILE='path_data2.qaz'
+	tmpout = open(path_NOMEFILE,'w')
+	for i in range(NOB):
+		path=data[i]
+		tmpout.write('# body number ' + `(i+1)` + ' : speeds \n')
+		tmpout.write(speeds(path))
+		tmpout.write('\n\n')
+	tmpout.flush()
+	tmpout.close()
+	print path_NOMEFILE, 'creato!'
+	doing(done)
+	sys.exit(0)
+
+num_OOGL_COLORS=[[1.0, 0.25, 0.0, 0.0],  [0.22,  0.69,  0.87, 0.0],
+[1.0, 1.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 1.0, 1.0, 0.0], [1.0, 0.0, 1.0, 0.0],
+[ 0.647059, 0.164706, 0.164706, 0.0 ]
+]
+OOGL_COLORS=[[1.0, 0.25, 0.0, 0.0],  [0.22,  0.69,  0.87, 0.0],
+[1.0, 1.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 1.0, 1.0, 0.0], [1.0, 0.0, 1.0, 0.0],
+[ 0.647059, 0.164706, 0.164706, 0.0 ]
+]
+for i in range(len(num_OOGL_COLORS)):
+	for j in range(3):
+		num_OOGL_COLORS[i][j] = num_OOGL_COLORS[i][j] * 0.6
+for i in range(len(OOGL_COLORS)+1,NOB+1):
+	tmpcolors=[0.0,0.0,0.0,0.0]
+	for tmpind in range(len(tmpcolors)):
+		tmpcolors[tmpind]=whrandom.uniform(0.0,1.0)
+	# OOGL_COLORS.append(OOGL_COLORS[-1])
+	OOGL_COLORS.append(tmpcolors)
+for i in range(len(num_OOGL_COLORS)+1,NOB+1):
+	tmpcolors=[0.0,0.0,0.0,0.0]
+	for tmpind in range(len(tmpcolors)):
+		tmpcolors[tmpind]=whrandom.uniform(0.0,1.0)
+	# num_OOGL_COLORS.append(num_OOGL_COLORS[-1])
+	num_OOGL_COLORS.append(tmpcolors)
+
+
+for i in range(len(OOGL_COLORS)):
+	for j in range(3):
+		OOGL_COLORS[i][j] = OOGL_COLORS[i][j] * 0.6
+	for j in range(4):
+		OOGL_COLORS[i][j] = `OOGL_COLORS[i][j]` 
+	OOGL_COLORS[i]=string.join(OOGL_COLORS[i],' ')
+oogl_sphere_radius=oogl_sphere_scale * max(maxima) 
+
+########################################################################
+########################################################################
+###
+### OFF polyhedron (animate...)
+###
+########################################################################
+########################################################################
+def make_list_of_faces(numb):
+	if numb>7: 
+		sys.stderr.write("make_list_of_faces cannot deal more than 7 objects!\n")
+		sys.exit(1)
+	if numb==3: 
+		return [ [1,2,3] ]
+	elif numb==4: 
+		return [ [ 1, 2, 3 ], [ 1, 2, 4 ], [ 1, 3, 4 ], [ 2, 3, 4 ] ] 
+	elif numb==5:
+		return [ [ 1, 2, 3 ], [ 1, 2, 4 ], [ 1, 2, 5 ], [ 1, 3, 4 ], [ 1, 3, 5 ],
+  [ 1, 4, 5 ], [ 2, 3, 4 ], [ 2, 3, 5 ], [ 2, 4, 5 ], [ 3, 4, 5 ] ]
+	elif numb==6:
+		return [ [ 1, 2, 3 ], [ 1, 2, 4 ], [ 1, 2, 5 ], [ 1, 2, 6 ], [ 1, 3, 4 ],
+  [ 1, 3, 5 ], [ 1, 3, 6 ], [ 1, 4, 5 ], [ 1, 4, 6 ], [ 1, 5, 6 ],
+  [ 2, 3, 4 ], [ 2, 3, 5 ], [ 2, 3, 6 ], [ 2, 4, 5 ], [ 2, 4, 6 ],
+  [ 2, 5, 6 ], [ 3, 4, 5 ], [ 3, 4, 6 ], [ 3, 5, 6 ], [ 4, 5, 6 ] ]
+	elif numb==7:
+		return [ [ 1, 2, 3 ], [ 1, 2, 4 ], [ 1, 2, 5 ], [ 1, 2, 6 ], [ 1, 2, 7 ],
+  [ 1, 3, 4 ], [ 1, 3, 5 ], [ 1, 3, 6 ], [ 1, 3, 7 ], [ 1, 4, 5 ],
+  [ 1, 4, 6 ], [ 1, 4, 7 ], [ 1, 5, 6 ], [ 1, 5, 7 ], [ 1, 6, 7 ],
+  [ 2, 3, 4 ], [ 2, 3, 5 ], [ 2, 3, 6 ], [ 2, 3, 7 ], [ 2, 4, 5 ],
+  [ 2, 4, 6 ], [ 2, 4, 7 ], [ 2, 5, 6 ], [ 2, 5, 7 ], [ 2, 6, 7 ],
+  [ 3, 4, 5 ], [ 3, 4, 6 ], [ 3, 4, 7 ], [ 3, 5, 6 ], [ 3, 5, 7 ],
+  [ 3, 6, 7 ], [ 4, 5, 6 ], [ 4, 5, 7 ], [ 4, 6, 7 ], [ 5, 6, 7 ] ]
+	
+
+def  oogl_polyhedron(listofvertices):
+	res=''
+	number_of_vertices=len(listofvertices)
+	list_of_faces=make_list_of_faces(number_of_vertices)
+	number_of_faces=len(list_of_faces)
+	number_of_edges=number_of_faces
+	res="""
+# polyhedron of interactions
+(geometry "polyhedron"
+{ appearance {
+        * face
+        * edge
+        * -normal
+        * linewidth 2
+        material { edgecolor 0.3 0.3 0.0 }
+}
+OFF
+%i %i %i 
+
+""" % ( number_of_vertices, number_of_faces , number_of_edges )
+	for i in range(number_of_vertices):
+		res=res+"%f %f %f\n" %(
+listofvertices[i][0], listofvertices[i][1], listofvertices[i][2])
+	res=res+"\n\n#faces\n"
+	# now faces
+	for i in range(number_of_faces):
+		res=res+"3 %i %i %i\n" %  ( \
+list_of_faces[i][0]-1, list_of_faces[i][1]-1, list_of_faces[i][2]-1)
+
+	res=res+"""
+}
+)
+# (name-object "polyhedron" "polyhedron")
+
+"""
+	return res
+
+
+
+
+
+
+if ONLY_OOGL:
+	if ONLY_ONE_FRAME:
+		doing("generating the OOGL file... ")
+	else:
+		doing("generating the OOGL file and executing %s... " % GEOMVIEW_COMMAND + '\nPress QQ to quit\n' )
+	sys.stdout.flush()
+	oogl_NOMEFILE='orbits.oogl'
+	myrange=range(0,steps,FRAMES_STEP)
+	vect_file=''
+	vect_file=vect_file + 'VECT\n' + \
+        ('%i # number of paths\n' % NOB )+ \
+	'%i # total number of vertices\n' % (NOB*(len(myrange))) + \
+	'%i # total number of colors\n\n' % NOB 
+	for i in range(NOB):
+		vect_file=vect_file + ('%i\n' % -len(myrange))  
+	vect_file=vect_file+'\n'
+	for i in range(NOB):
+		vect_file=vect_file + ('%i\n' % 1 )
+	vect_file=vect_file+('\n#now the coordinates of the vertices...\n')
+	for i in range(NOB):
+		vect_file=vect_file+('\n#body number %i...\n' % (i+1))
+		for j in myrange:
+			vect_file=vect_file+('%f %f %f\n' % (data[i][j][0],data[i][j][1],data[i][j][2]) )
+	vect_file=vect_file+('\n\n## COLORS:\n')
+	for i in range(NOB):
+		vect_file=vect_file+(OOGL_COLORS[i] + '\n')
+	
+	
+	oogl_header="""(backcolor "World" 1.000000 1.000000 1.000000)
+(normalization "World" none)
+(bbox-draw "World" off)
+ (merge-baseap appearance {
+         face
+         -edge
+         vect
+         -transparent
+        -shadelines 
+	evert
+          shading smooth
+         -normal
+           normscale 1
+           linewidth 2
+  material {
+        shininess 128
+        ka 1.00
+        kd 1.00
+        ks 1.00
+        alpha 0.000000
+        ambient 0.000000 0.700000 0.700000
+        diffuse 0.000000 0.700000 0.700000
+        specular 0.500000 0.500000 0.500000
+        edgecolor 1.000000 1.000000 1.000000
+        normalcolor 1.000000 1.000000 1.000000
+  }                                                                            
+  lighting {
+        ambient 0.2 0.2 0.2
+        localviewer 1
+        attenconst 0
+        attenmult 0
+        replacelights
+        light {
+                ambient 0.000000 0.000000 0.000000
+                color 0.750000 0.750000 0.750000
+                position 0.000000 0.000000 10.000000 0.000000
+        }
+        light {
+                ambient 0.000000 0.000000 0.000000
+                color 0.600000 0.600000 0.600000
+                position 0.000000 1.000000 -1.000000 0.000000
+        }
+        light {
+                ambient 0.000000 0.000000 0.000000
+                color 0.400000 0.400000 0.400000
+                position 1.000000 -2.000000 -1.000000 0.000000
+        }
+  }
+}
+ ) # end base appearance
+"""
+	oogl_paths="""( new-geometry "paths"   
+{ =
+%s
+}
+)
+(name-object "paths" "orbits")
+""" % (vect_file)
+	
+	[maxx,maxy,maxz] = maxima
+	bbox_scale=1.1
+	maxx = bbox_scale*maxx
+	maxy = bbox_scale*maxy
+	maxz = bbox_scale*maxz
+	oogl_bbox="""
+(new-geometry "bbox"    
+{ appearance {
+        * -face
+         * edge
+        * -normal
+	* linewidth 1
+        material { edgecolor 0.2 0.2 0.2 }
+}
+OFF
+8 12 18
+
+%f %f %f
+%f %f %f
+%f %f %f
+%f %f %f
+%f %f %f
+%f %f %f
+%f %f %f
+%f %f %f
+
+2        0 1
+2        0 2
+2        0 4
+2        1 3
+2        1 5
+2        2 3
+2        2 6
+2        3 7
+2        4 5
+2        4 6
+2        5 7
+2        6 7
+}
+)
+(name-object "bbox" "bbox")
+""" % (
+maxx, maxy, maxz,
+-maxx,maxy,maxz,
+maxx,-maxy,maxz,
+-maxx,-maxy,maxz,
+maxx, maxy, -maxz,
+-maxx,maxy,-maxz,
+maxx,-maxy,-maxz,
+-maxx,-maxy,-maxz
+)	
+	oogl_spheres=''
+	list_of_vecs=[]
+	for i in range(NOB):
+		oogl_spheres=oogl_spheres + """
+( geometry "sphere%i" { =   
+{ { SPHERE %f %f %f %f} appearance 
+	material{
+	ambient  %f %f %f
+        diffuse %f %f %f
+        specular 0.500000 0.500000 0.500000
+        edgecolor 1.000000 1.000000 1.000000
+        normalcolor 1.000000 1.000000 1.000000
+} } } )
+""" % ( 
+(i+1), 
+oogl_sphere_radius, 
+data[i][FRAME][0], data[i][FRAME][1], data[i][FRAME][2], 
+num_OOGL_COLORS[i][0], num_OOGL_COLORS[i][1], num_OOGL_COLORS[i][2],  
+num_OOGL_COLORS[i][0], num_OOGL_COLORS[i][1], num_OOGL_COLORS[i][2] )
+		list_of_vecs.append(data[i][FRAME])	
+	if WITHOFF:
+		oogl_spheres=oogl_spheres+"\n\n" + oogl_polyhedron(list_of_vecs)
+	oogl_look="""
+(progn 
+(camera "Camera" camera {
+        perspective 1
+}
+) 
+(look-encompass "bbox" "Camera" )
+(zoom "Camera" 1.2)
+)
+"""
+
+	if ONLY_ONE_FRAME:
+		oogl_animate=''
+		tmpout = open(oogl_NOMEFILE,'w')
+	elif WITHOFF:
+		oogl_animate="""
+(emodule-run "%s" "--animate --tmpdir=%s --fstep=%i --withoff --sleepfor=%f --maxframes=%i --size=%i --cs=%f" "%s" )
+""" % (LONG_PROGRAMNAME,TMPDIR, FRAMES_STEP, SLEEPFOR, MAXFRAMES,SIZE , collision_scale, namefile)
+		tmpout = os.popen(GEOMVIEW_COMMAND,'w')
+	else:
+		oogl_animate="""
+(emodule-run "%s" "--animate --tmpdir=%s --fstep=%i --sleepfor=%f --maxframes=%i --size=%i --cs=%f" "%s" )
+""" % (LONG_PROGRAMNAME,TMPDIR, FRAMES_STEP, SLEEPFOR, MAXFRAMES, SIZE, collision_scale, namefile)
+		tmpout = os.popen(GEOMVIEW_COMMAND,'w')
+	tmpout.write('(progn \n' + oogl_header + oogl_paths + oogl_spheres + oogl_bbox + ')\n' + oogl_look + oogl_animate )
+	tmpout.close()
+	doing(done)
+	if ONLY_ONE_FRAME: print (" ==> file " + oogl_NOMEFILE + " generated!\n")
+	sys.exit(0)
+
+def iscollision_time(k):
+	for i in range(NOB):
+		for j in range(i+1,NOB):
+				en=euc_norm( diff(data[i][k],data[j][k])) 
+				if en < collision_scale * max(maxima):
+					return 1
+	return 0	
+				
+
+def create_animation_commands():
+	global pressedA
+	sys.stderr.write("creating animation sequence with sizes %ix%i (choosen %i)...\n" % (XSIZE,YSIZE,SIZE))
+	extension=(string.split(namefile,'.'))[-1]
+	basename=string.join(string.split(namefile,'.')[:-1],'.')
+	sys.stderr.write(repr(basename)+"\n")
+	result=''
+	num_of_rib=0
+	sys.stdout.write('(set-clock 0)\n' )
+	sys.stderr.write("trying to build %i image files...\n" % len(myrange) )
+	for thisloop in range(100):
+	  if pressedA=='': break
+	  for k in myrange:
+		ribfile = "%s_%i.rib" % (basename,num_of_rib)
+		# picturefile = "\"| convert - %s_%i.jpg\"" %  (basename,num_of_rib)
+		# picturefile = "\"| ppmtoyuvsplit  %s_%i\"" %  (basename,num_of_rib)
+		picturefile =  "%s/tmppic%s_%06i.ppm" %  (TMPDIR, basename,num_of_rib) 
+		if (iscollision_time(k) and (collision_scale>0)):
+			oogl_collision=oogl_collision_yes
+		else:
+			oogl_collision=oogl_collision_no
+		oogl_spheres=''
+		list_of_vecs=[]
+		for i in range(NOB):
+			oogl_spheres=oogl_spheres + """\
+( geometry "sphere%i" {    
+{ SPHERE %f %f %f %f} 
+  appearance material{
+	ambient  %f %f %f
+	 diffuse %f %f %f
+}
+} )
+""" %  ( (i+1), 
+	oogl_sphere_radius, 
+	data[i][k][0], data[i][k][1], data[i][k][2],
+	num_OOGL_COLORS[i][0], num_OOGL_COLORS[i][1], num_OOGL_COLORS[i][2],  
+	num_OOGL_COLORS[i][0], num_OOGL_COLORS[i][1], num_OOGL_COLORS[i][2] )
+			list_of_vecs.append(data[i][k])	
+		if WITHOFF:
+			oogl_spheres=oogl_spheres+"\n\n" + oogl_polyhedron(list_of_vecs)
+## ( rib-snapshot "Camera" %s ) 
+		sys.stdout.write("""
+(progn    %s )
+( snapshot "Camera" %s ppm %i %i ) 
+(echo "done\n")
+""" % (oogl_spheres, picturefile, XSIZE, YSIZE ))  
+		# sys.stderr.write("file %i generated...\n" % num_of_rib )
+		sys.stderr.write(".")
+		if num_of_rib % 72 == 71: 
+			sys.stderr.write("\n(%2.2f%% done)" % ( 100.0 * float(num_of_rib) / len(myrange ) ) )
+			
+		# sys.stderr.write("%f\n" % (SLEEPFOR * (k+1)))
+		sys.stdout.flush()
+		num_of_rib = num_of_rib+1
+		possible_line=sys.stdin.readline()
+		## if possible_line[:-1] != 'done': sys.stderr.write("pl = " + possible_line)
+		if possible_line[:-1] == '(delete Camera)':
+			sys.stdout.write('(exit)\n')
+			sys.exit(0)
+		elif possible_line[:12] == '(rawevent 65':
+			pressedA=''
+			break
+	sys.stderr.write("...done.\nnow mpegging the files...\n")
+	tmp_MPEG_COMMAND = MPEG_PROGRAM + ' ' + \
+	       MPEG_OPTIONS % (len(myrange)-1) + ' ' + \
+	       '-h '+`XSIZE`+' -v ' +`YSIZE` +' '+ \
+               basename+'_' + ' -s ' + \
+               basename+'.mpeg'   + ' ' + MPEG_VERBOSE
+	FFMPEG_OPTIONS='-r 25   -qmin 2 -qmax 4 -y '
+	tmp_MPEG_COMMAND = 'ffmpeg '+ FFMPEG_OPTIONS + ' -i ' + TMPDIR + '/tmppic' + basename + '_%06d.ppm' + '  -vcodec mjpeg  -f avi ' + MOVIENAME + ' ' + MPEG_VERBOSE 
+	## sys.stderr.write("...executing %s...\n" % tmp_MPEG_COMMAND )
+	rr=os.popen(tmp_MPEG_COMMAND)
+	sys.stderr.write(rr.read())
+	rr.close()
+	rr=os.popen("rm -f %s/tmppic%s_*.ppm" % (TMPDIR, basename ) )
+	sys.stderr.write(rr.read())
+	rr.close()
+	sys.stderr.write("  ==>File %s generated...\n" % MOVIENAME )
+	return ''
+
+	
+if ONLY_ANIMATE:
+	pressedA=''
+	sys.stdout.write('( interest (delete Camera) )\n' )
+	sys.stdout.write('( interest (rawevent 65) )\n' ) ## it is 'A'
+	oogl_collision_yes="""\
+  (backcolor "Camera" 0.000000 0.000000 0.000000)
+  (backcolor "Camera" 1.000000 1.000000 1.000000)
+"""	
+	oogl_collision_no=''
+	myrange=range(0,steps,FRAMES_STEP) ; ## myrange = myrange + myrange[-1:]*1; ## __HERE__
+        for loop in range(MAX_LOOPS):
+		sys.stdout.write('(set-clock 0)\n' )
+		for k in myrange:
+			if (iscollision_time(k) and (collision_scale>0)):
+				oogl_collision=oogl_collision_yes
+			else:
+				oogl_collision=oogl_collision_no
+			oogl_spheres=''
+			list_of_vecs=[]
+			for i in range(NOB):
+				oogl_spheres=oogl_spheres + """\
+	( geometry "sphere%i" {    
+	{ SPHERE %f %f %f %f} 
+	  appearance material{
+		ambient  %f %f %f
+		 diffuse %f %f %f
+	}
+	} )
+	""" %  ( (i+1), 
+	oogl_sphere_radius, 
+	data[i][k][0], data[i][k][1], data[i][k][2],
+	num_OOGL_COLORS[i][0], num_OOGL_COLORS[i][1], num_OOGL_COLORS[i][2],  
+	num_OOGL_COLORS[i][0], num_OOGL_COLORS[i][1], num_OOGL_COLORS[i][2] )
+				list_of_vecs.append(data[i][k])	
+			if WITHOFF:
+				oogl_spheres=oogl_spheres+"\n\n" + oogl_polyhedron(list_of_vecs)
+			sys.stdout.write('(progn \n'  + \
+                                          oogl_spheres + \
+                                          ' (echo "done\\n")  ' + \
+                                   '(sleep-until %f) \n) \n' % (SLEEPFOR*(k+1))  +\
+                                          oogl_collision ) 
+			# sys.stderr.write("%f\n" % (SLEEPFOR * (k+1)))
+			sys.stdout.flush()
+			possible_line=sys.stdin.readline()
+			## if possible_line[:-1] != 'done': sys.stderr.write("pl = " + possible_line)
+			if possible_line[:-1] == '(delete Camera)':
+				sys.stdout.write('(exit)\n')
+				sys.exit(0)
+			elif possible_line[:12] == '(rawevent 65':
+				if pressedA=='A':
+					create_animation_commands()
+					##sys.stdout.write(create_animation_commands())
+					pressedA=''
+					## sys.stdout.write('(exit)\n')
+					# sys.exit(0)
+				else:
+					pressedA='A'
+					sys.stderr.write("A pressed\n")
+		if (VERBOSE): sys.stderr.write('loop ' + `loop+1`  + ' done!\n')
+	sys.stdout.write('(exit)\n')
+	sys.exit(0)	
+
+
+
+if VERBOSE:
+	print \
+	"TMPDIR         = ", TMPDIR, "\n", \
+	"OUTPUT         = ", MOVIENAME, "\n", \
+	"BGColor        = " , BGColor, "\n",  \
+	"FRAME          = ", FRAME, "\n", \
+	"FRAMES_STEP    = ", FRAMES_STEP, "\n", \
+	"ONLY_ONE_FRAME = ",  ONLY_ONE_FRAME, "\n", \
+	'SIZE           = ', SIZE, "\n", \
+	"CAMERA_SCALE   = ", CAMERA_SCALE, "\n", \
+	"VERBOSE        = ", VERBOSE, "\n", \
+	"XSIZE          = ", XSIZE, "\n", \
+	"YSIZE          = ",  YSIZE, "\n",
+	"MPEG_COMMAND   = ", MPEG_COMMAND, "\n", \
+	"POV_COMMAND    = ", POV_COMMAND, "\n",\
+	"withoff	= ", WITHOFF, "\n", \
+	"sleepfor=	= ", SLEEPFOR, "\n"
+
+	if HAS_POV_FILE: print "POV_FILE       = ", POV_FILE, "\n"
+
+
+
+
+MOVIENAME=os.path.abspath(os.path.expanduser(MOVIENAME))
+PWD=os.getcwd()
+os.chdir(TMPDIR)
+
+
+
+MAXX = maxima[0] 
+MAXY = maxima[1] 
+MAXZ = maxima[2] 
+MAX = 1.6 * (max(MAXY, 3.0/4.0 * MAXX) + MAXZ) * CAMERA_SCALE
+if (MAXZ == min(maxima)):
+	CAMERA_X=0
+	CAMERA_Y=0
+	CAMERA_Z=-MAX
+elif (MAXY == min(maxima)):
+	CAMERA_X=0
+	CAMERA_Y=-MAX
+	CAMERA_Z=0
+elif (MAXX == min(maxima)):
+	CAMERA_X=-MAX
+	CAMERA_Y=0
+	CAMERA_Z=0
+	
+
+povfile_header="""
+#version 3.0
+global_settings { assumed_gamma 2.2 }
+#declare OrangeRed = color red 1.0 green 0.25
+#declare SummerSky = color red 0.22 green 0.69 blue 0.87
+#declare Red     = rgb <1, 0, 0>
+#declare Green   = rgb <0, 1, 0>
+#declare Blue    = rgb <0, 0, 1>
+#declare Yellow  = rgb <1,1,0>
+#declare Cyan    = rgb <0, 1, 1>
+#declare Magenta = rgb <1, 0, 1>
+#declare Clear   = rgbf 1
+#declare White   = rgb 1
+#declare Black   = rgb 0
+#declare Brown = color red 0.647059 green 0.164706 blue 0.164706
+
+#declare    Pi = pi
+#declare    s = 0
+#declare    Sphere_Size = """ + `SPHERE_SIZE *  MAX` +"\n"
+for i in range(NOB):
+		povfile_header = povfile_header + \
+		'#declare    Color'+`(i+1)` + ' = ' + Color[i % len(Color)]  +"\n"
+		povfile_header = povfile_header + \
+		'#declare    BColor'+`(i+1)` + ' = ' + BColor[i % len(BColor) ]  +"\n"
+povfile_header=povfile_header+"""
+plane {
+    z, """ + `9999*MAX` + """
+    texture {
+       pigment {
+          colour """ + BGColor + """
+       }
+       finish {
+          ambient 0.4
+          diffuse 0.6
+       }
+    }
+ }
+"""
+
+
+doing('computing camera position...')
+
+
+
+povfile_camera="""
+camera {
+location  < """+`CAMERA_X`+" , "+`CAMERA_Y`+" , "+ `CAMERA_Z` + """ >
+up        <0,  1,  0>
+right     <4/3, 0,  0>
+look_at   < 0 , 0 , 0 >
+}
+"""
+# direction <0, 0,  1>
+
+doing(done)
+
+doing('computing lights...')
+
+povfile_lights="""
+light_source {< """+ \
+`-1* MAX * 2`      + " , " + \
+` 0.1 * MAX * 2 `  + " , "+\
+ ` -1.0 * MAX * 2` + """   > colour 1 }
+light_source { < """ + \
+`-1.1 * MAX * 2 ` +  " , " + \
+`0.7 * MAX * 2 ` + " , " + \
+`-0.5 * MAX * 2 ` +  \
+""" > colour 1 }
+light_source { < """ + \
+`-1.1 * MAX * 2 ` + " , " +\
+`1.1 * MAX * 2 ` + " , " + \
+`-0.5 * MAX * 2 ` + \
+""" > colour 1 }
+"""
+
+povfile_lights="""
+light_source { < %f , %f , %f > colour 1 } 
+light_source { < %f , %f , %f > colour 1 } 
+light_source { < %f , %f , %f > colour 1 } 
+""" % ( 
+50 * CAMERA_X , 50 * CAMERA_Y , 50 * CAMERA_Z ,
+-50 * CAMERA_Y , -50 * CAMERA_Z , -50 * CAMERA_X ,
+-50 * CAMERA_Z , -50 * CAMERA_X , -50 * CAMERA_Y )
+
+
+doing(done)
+
+path_BEGIN=\
+"// path generated by " + PROGRAMNAME + " version " + `VERSION`+ "\n//" +  uname_date + \
+"union {\n"
+povfile_paths=''
+
+
+
+
+povfile_extra=''
+if HAS_POV_FILE:
+	input= open( POV_FILE,'r')
+	povfile_extra = input.read()
+	input.flush()
+	input.close()
+
+
+
+
+
+
+
+doing('computing paths...')
+
+def make_cilindro(flist,slist):
+	if len(flist) != 3:
+		print "fatal error: make_cilindro(flist,slist) called with wrong data:"
+		print "flist = ", flist
+		print "slist = ", slist
+		sys.exit(1)
+	if dist(flist,slist)>small_epsilon:
+		result = \
+	"""cylinder{  < %5.12f , %5.12f , %5.12f > ,  
+		   < %5.12f , %5.12f , %5.12f > ,
+		     %5.12f open }\n""" % ( flist[0] , flist[1] , flist[2] , slist[0] , slist[1] , slist[2] , (PATH_RADIUS * MAX) )
+	else:
+		result =""
+	return result
+
+def make_sphere(flist,number):
+	if len(flist) != 3:
+		print "fatal error: make_sphere(flist) called with wrong data:"
+		print "flist = ", flist
+		sys.exit(1)
+	result = \
+"""sphere { < %5.12f , %5.12f , %5.12f >, 
+Sphere_Size
+texture{ pigment { color  Color%i }
+finish { ambient 0.4 diffuse 0.6 phong 1 } } }\n""" % ( flist[0] , flist[1], flist [2] , number )
+	return result
+
+for i in range(NOB):
+	body=i+1
+	path=data[i]
+	maxdist=max(numerical_distances(path,[0.0,0.0,0.0]))
+	path_NOMEFILE='path'+`body`+'.inc'
+	if maxdist>1.0E-5:
+		path_END="pigment {color " +  BColor[i % len(BColor)] + "}\n}"
+		povfile_paths = povfile_paths+'#include "'+path_NOMEFILE+'"\n'
+		path_povfile = path_BEGIN
+		for time in range(steps-1):
+			cilindro = make_cilindro(path[time],path[time+1])
+			path_povfile = path_povfile + cilindro
+		path_povfile = path_povfile + path_END
+	else:
+		path_povfile='// no data here\n'
+	tmpout = open(path_NOMEFILE,'w')
+ 	tmpout.write(path_povfile)
+	tmpout.flush()
+	tmpout.close()
+doing(done)
+
+
+
+if HAS_MAXFRAMES: 
+	# checking whether MAXFRAMES and FRAMES_STEP are compatible
+	NUM_FRAMES=len(range(0,steps,FRAMES_STEP))
+	# this is steps/FRAMES_STEP + 1
+	if NUM_FRAMES>MAXFRAMES:
+		FRAMES_STEP=(steps)/(MAXFRAMES) +1
+
+
+
+if ONLY_ONE_FRAME: 
+	myrange=[FRAME]
+	doing("generating PPM file...\n")
+else:
+	myrange=range(0,steps,FRAMES_STEP)
+	MPEG_OPTIONS = MPEG_OPTIONS % (len(myrange)-1)
+	sys.stdout.write("generating "+`len(myrange)`+" YUV files...\n")
+
+	
+
+sys.stdout.flush()
+frame_number=0
+for i in myrange: 
+	if not ONLY_ONE_FRAME: sys.stdout.write(".")
+	if ( (frame_number+1) % 50 == 0) and (frame_number>0): sys.stdout.write("(%i done!)\n" % (frame_number+1)) 
+	sys.stdout.flush()
+	povfile_spheres=''
+	for j in range(NOB):
+		povfile_spheres = povfile_spheres + make_sphere(data[j][i],j+1)
+	tmppovfile = povfile_header + povfile_extra + povfile_camera + povfile_lights +\
+povfile_paths + povfile_spheres  + "\n"
+	if ONLY_POV:
+		pipe = open(MOVIENAME,'w')
+	elif ONLY_ONE_FRAME:
+		pipe = os.popen(POV_COMMAND,'w')
+	else:
+		pipe = os.popen(POV_COMMAND % frame_number ,'w')
+	pipe.write(tmppovfile)
+	pipe.flush()
+	failed=pipe.close()
+	if failed: 
+		print "\nThe command ``" + POV_COMMAND + "'' has failed!\n"
+		doing(not_done)
+		sys.exit(1)
+	frame_number=frame_number + 1
+doing(done)	
+
+if not ONLY_ONE_FRAME:
+	doing("generating MPEG animation...")
+	sys.stdout.flush()
+	failed=os.system(MPEG_COMMAND + "\n")
+	if failed: 
+		print "\nThe command `" + MPEG_COMMAND + "' has failed!\n"
+		doing(not_done)
+		sys.exit(1)
+	if (not VERBOSE): os.system("rm "+BASETMPFIG+"*.{Y,U,V}")
+
+if (not VERBOSE): os.system("rm path*.inc")
+# mv MOVIENAME to PWD/MOVIENAME
+# shutil.copyfile(MOVIENAME,PWD+os.sep+MOVIENAME)
+# os.remove(MOVIENAME)
+os.chdir(PWD)
+
+doing(done)	
+sys.stdout.write(" ==> file " + MOVIENAME + " generated!\n")
+sys.exit(0)

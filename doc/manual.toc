@@ -1,0 +1,13 @@
+\chapcontents {\tocstrut }{Introduction}{3}
+\chapcontents {1}{Symorb Manual}{4}
+\seccontents {1.1}{Main commands} {4}
+\seccontents {1.2}{Utilities, properties and attributes} {4}
+\seccontents {1.3}{An Example Session} {5}
+\seccontents {1.4}{Example of generating file} {6}
+\seccontents {1.5}{Generating LSGs} {7}
+\chapcontents {2}{MinPath: an interactive optimization program}{8}
+\seccontents {2.1}{Main commands} {8}
+\seccontents {2.2}{A database of planar symmetry groups} {9}
+\seccontents {2.3}{An example session} {10}
+\seccontents {2.4}{Parallel cluster} {11}
+\chapcontents {}{Bibliography}{12}

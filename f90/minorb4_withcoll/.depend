@@ -1,0 +1,25 @@
+FOBJ=action.o bigmat_K.o bigmat_kinet.o ccg.o functions.o initdata.o integrali.o io.o kinetic.o mat_omega.o minorb.o mod_minorb.o nonlinear.o optim.o pars.o potential.o project.o qnewton.o starting_path.o stpflow.o 
+
+minorb.bin: $(FOBJ)
+	$(FC) -o $@ $(FFLAGS) $(LDFLAGS) $(FOBJ) $(LIBS)
+
+action.o : action.f90 potential.o kinetic.o initdata.o 
+bigmat_K.o : bigmat_K.f90 integrali.o mat_omega.o initdata.o 
+bigmat_kinet.o : bigmat_kinet.f90 initdata.o 
+ccg.o : ccg.f90 project.o action.o functions.o initdata.o 
+functions.o : functions.f90 initdata.o 
+initdata.o : initdata.f90 
+integrali.o : integrali.f90 initdata.o 
+io.o : io.f90 project.o action.o initdata.o 
+kinetic.o : kinetic.f90 functions.o initdata.o 
+mat_omega.o : mat_omega.f90 pars.o initdata.o 
+minorb.o : minorb.f90 mod_minorb.o 
+mod_minorb.o : mod_minorb.f90 nonlinear.o qnewton.o optim.o ccg.o stpflow.o bigmat_K.o starting_path.o io.o pars.o initdata.o 
+nonlinear.o : nonlinear.f90 qnewton.o functions.o initdata.o 
+optim.o : optim.f90 action.o project.o functions.o initdata.o 
+pars.o : pars.f90 initdata.o 
+potential.o : potential.f90 functions.o initdata.o 
+project.o : project.f90 initdata.o 
+qnewton.o : qnewton.f90 project.o action.o functions.o initdata.o 
+starting_path.o : starting_path.f90 project.o functions.o initdata.o 
+stpflow.o : stpflow.f90 project.o action.o initdata.o 

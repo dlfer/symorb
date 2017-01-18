@@ -1,0 +1,7 @@
+GAParch=x86_64-pc-linux-gnu-x86_64-linux-gnu-gcc-default64
+GAParch_system=x86_64-pc-linux-gnu-x86_64-linux-gnu-gcc-default64
+GAParch_abi=64-bit
+GAPPATH=/usr/lib/gap
+MINORBDIR=f90/minorb4
+ORBVIEWDIR=src/orbview
+PYTHONLOCAL=src/python.local

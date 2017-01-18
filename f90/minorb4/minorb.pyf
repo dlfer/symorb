@@ -1,0 +1,32 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+module mod_minorb ! in mod_minorb.f90
+    use mod_nonlinear
+    use io
+    use mod_stpflow
+    use optim
+    use initdata
+    use mod_bigmat_k
+    use pars
+    use mod_starting_path
+    use qnewton
+    use ccg
+    subroutine minorb_init ! in mod_minorb.f90:mod_minorb
+    end subroutine minorb_init
+    subroutine minorb_exit ! in mod_minorb.f90:mod_minorb
+    end subroutine minorb_exit
+    subroutine check ! in mod_minorb.f90:mod_minorb
+        use initdata
+    end subroutine check
+    subroutine relax(mygamma) ! in mod_minorb.f90:mod_minorb
+        real(kind=precis) dimension((nob),(dim),steps+1+1),intent(inout) :: mygamma
+    end subroutine relax
+    function howsol(mygamma) ! in mod_minorb.f90:mod_minorb
+        real(kind=precis) dimension((nob),(dim),steps+1+1) :: mygamma
+        real(kind=precis) :: howsol
+    end function howsol
+end module mod_minorb
+
+! This file was auto-generated with f2py (version:2_4422).
+! See http://cens.ioc.ee/projects/f2py2e/

@@ -1,0 +1,39 @@
+\Chapter{Introduction}
+
+The purpose of the package is to find numerically  
+local minima of the Lagrangian action restricted 
+to the space of symmetric loops, according to the results 
+of 
+\cite{FT2003} and \cite{zz}.
+In order to obtain a good approximation of the symmetric orbits,
+two steps  are necessary:
+first, given an integer $n\geq 3$ and a dimension $d\geq 2$
+one has to list all possible (finite) symmetry groups
+for the $n$-body problem in $\R^d$.
+Then, it is necessary communicate the data about the symmetry
+group to a custom optimization package, that interactively
+parses the input and output the supposed minimizer
+in data format. At the end, some post-processing is done in
+order to visualize an animation of the orbit found
+and compute some of its invariants (energy, angular momentum,
+and so on).
+
+This package thus consist of two piaces:
+first a GAP package that interactively allows to classify
+and define symmetry groups; then, an optimization package
+performs numerical optimization, via a custom user interface,
+allowing interactive manipulation and visualization of 
+the orbit, which planar or spatial.
+
+At the end of this short manual we will show a sample
+interactive session and list some of the most used commands.
+
+
+\vskip 3cm
+
+\hfill Milano, July 2005
+
+\hfill Davide L. Ferrario
+
+
+

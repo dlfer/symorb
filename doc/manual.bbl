@@ -1,0 +1,28 @@
+\def\cfudot#1{\ifmmode\setbox7\hbox{$\accent"5E#1$}\else
+  \setbox7\hbox{\accent"5E#1}\penalty 10000\relax\fi\raise 1\ht7
+  \hbox{\raise.1ex\hbox to 1\wd7{\hss.\hss}}\penalty 10000 \hskip-1\wd7\penalty
+  10000\box7} \def\cprime{$'$} \def\cprime{$'$} \def\cprime{$'$}
+  \def\cprime{$'$} \def\cprime{$'$} \def\cprime{$'$} \def\cprime{$'$}
+  \def\cprime{$'$} \def\cprime{$'$} \def\cprime{$'$} \def\cprime{$'$}
+  \def\cprime{$'$} \def\cprime{$'$} \def\cprime{$'$} \def\cprime{$'$}
+  \def\cprime{$'$} \def\polhk#1{\setbox0=\hbox{#1}{\ooalign{\hidewidth
+  \lower1.5ex\hbox{`}\hidewidth\crcr\unhbox0}}}
+  \def\polhk#1{\setbox0=\hbox{#1}{\ooalign{\hidewidth
+  \lower1.5ex\hbox{`}\hidewidth\crcr\unhbox0}}} \def\cprime{$'$}
+  \def\cprime{$'$} \def\cprime{$'$} \def\cprime{$'$}
+\begin{thebibliography}{BFT07}
+
+\bibitem[BFT07]{zz}
+Vivina Barutello, Davide~L. Ferrario, and Susanna Terracini.
+\newblock Symmetry groups of the planar $3$-body problem and action--minimizing
+  trajectories.
+\newblock {\em Arch. Rational Mech. Anal.}, 2007.
+\newblock to appear.
+
+\bibitem[FT04]{FT2003}
+Davide~L. Ferrario and Susanna Terracini.
+\newblock On the existence of collisionless equivariant minimizers for the
+  classical n-body problem.
+\newblock {\em Invent. Math.}, 155(2):305--362, 2004.
+
+\end{thebibliography}

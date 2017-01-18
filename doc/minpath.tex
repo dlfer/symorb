@@ -1,0 +1,260 @@
+\Chapter{MinPath: an interactive optimization program}
+
+Now we assume that  the files `/tmp/eight.sym' and `/tmp/eight.info' exist. 
+We can interactively perform and visualize the minimization process
+as follows.
+
+\Section{Main commands}
+
+\> x=minpath(<symfile>)
+
+Define a MinPath object with symmetry group stored in  the 
+file <symfile>. 
+If no <symfile> is present, a list of symfiles in the current
+directory is given.
+Otherwise, there are the following pre-built objects:
+`eight_c6', 
+'eight_d6',
+'eight_d12',
+'trivial',
+'line',
+'isosceles',
+'hill',
+'choreography',
+'lagrange',
+'choreography_21' (from the list in \cite{zz}).
+
+
+\> x.info()
+
+Show info file of the path object `x'.
+
+\> x.new(*SPMETHOD=<SPMETHOD>)
+
+Give coefficients to `x'. If SPMETHOD=<SPMETHOD> is present,
+use StartingPath Method <SPMETHOD>. For example, SPMETHOD=1
+assigns random coefficients to the path.
+
+
+
+\> x.relax() 
+
+Optimization subroutines. It gives the list of all available algorithms
+with a short description and their codes, as follows:
+\begintt
+0:      Unconstrained Minimization with analytic Gradient
+1:      Unconstrained Minimization with Analytic Hessian
+2:      Unconstrained Minimization with finite-Difference 
+Hessian
+3:      Unconstrained Minimization with Conjugate 
+Gradient and analytic Gradient
+4:      Unconstrained Minimization without gradient 
+(nonsmooth)
+5:      Linearly Constrained Minimization with Analytic 
+Gradient
+6:      Step-Flow Descent
+7:      Simple Conjugate Gradient
+------------------------------------------------------------------------
+100:    Newton-Powell Finite-difference Jacobian
+200:    Newton-Powell Analytic Jacobian
+300:    Secant Broyden's Update and Finite-difference 
+Jacobian
+400:    Secant Broyden's Update and Analytic Jacobian
+\endtt
+
+
+\> x.relax(<relax\_code> + <newton\_code>)
+
+Optimization:  perform an optimization algorithm number <relax_code>
+and subsequently a newton root-finding with algorithm <newton_code>.
+
+\> x.newton(<newton_code>)
+
+Optimization:  perform
+a newton root-finding with algorithm <newton_code>.
+
+
+
+\> x.view() 
+
+View the path (GEOMVIEW has to be installed).
+
+% \) {\fmark x.omega=[<omegax>,<omegay>,<omegaz>]}  
+
+Set the rotation vector $\omega$.
+
+\> x.reshape(<STEPS>)
+
+Reshape the coefficient matrix of `x'.
+
+
+\> x.load(<filename>)
+
+Load coefficients for `x' from <filename>.
+
+\> x.write(<filename>)
+
+Write coefficients for `x' to <filename>.
+
+\> x.printsol(<filename>)
+
+Write to the file <filename> the positions of the <NOB> bodies
+in time, in a gnuplot-like format. It is the format that 
+can be visualized by `orbview'.
+
+\> x.dump()
+
+For debug only. Write to stdout everything.
+
+\> x.action()
+
+Compute the action of the loop `x'.
+
+\> x.howsol()
+
+Compute the norm of the gradient of the action of `x'.
+
+
+\> x.withcoll
+
+Set this variable to 1 if we want to use minorb avoiding collisions,
+or 0 otherwise.
+
+\Section{A database of planar symmetry groups}
+
+\) {\fmark all\_minpaths(dim=<dim>,NOB=<NOB>,GroupOrder=<group_order>,KernelTauOrder=<kernel_tau_order>,ActionType=<action_type>,IsTypeR=<IsTypeR>,IsCoercive=<IsCoercive>,IsRedundant=<IsRedundant>,HasAlwaysCollisions=<HasAlwaysCollisions>,TDSizes=<TDSizes>)}
+
+All options are not necessary. It gives back the list of all
+minpath objects with the desired properties (all of them have to 
+be fulfilled).
+
+\begintt
+MinorbShell > len(all_minpaths(NOB=3,dim=2,IsCoercive=true,\
+IsRedundant=false,HasAlwaysCollisions=false))
+6
+MinorbShell
+\endtt
+
+
+\Section{An example session}
+In the following example we load the lagrange symmetry,
+minimize with a Conjugate Gradient, then 
+solve the gradient system around the minimum with a Newton-Powell
+method, with analytic jacobian. After this, we reshape
+the solution, doubling its coefficients, and re-do the 
+nonlinear rootfinding with Broyden's Update and analytic Jacobian.
+The solution is written in the file `/tmp/lag1.myg'.
+
+First, it is necessary to run the interpreter. It is a subshell
+of `python', so that all python syntax and modules are 
+accessible insider `minpath'.
+
+\begintt
+[unix_shell] $ minpath
+minpath -- beginning at Fri Mar 26 14:37:51 CET 2004
+
+symfiles:
+
+
+MinorbShell >
+\endtt
+
+Now we can use the interactive shell.
+
+\begintt
+MinorbShell > x=lagrange
+MinorbShell > x.new()
+ starting new path...
+MinorbShell > x.relax(203)
+ relaxing...
+ # using IMSL DUMCGG
+ # Unconstrained Minimization with Conjugate Gradient and 
+analytic Gradient
+ # using NONLINEAR DNEQNJ
+ # Newton-Powell Analytic Jacobian
+ ==> action:   4.7124; howsol: 1.5637e-15
+MinorbShell > x.view()
+MinorbShell > x.reshape(50)
+<minpath object; NOB=3, dim=2, steps=50>
+MinorbShell > x.newton(400)
+ computing newton path...
+ # using NONLINEAR DNEQBJ
+ # Secant Broyden's Update and Analytic Jacobian
+ ==> action:   4.7124; howsol: 1.5688e-15
+MinorbShell > x.write('/tmp/lag1.myg')
+\endtt
+
+In the following example we consider the symmetry file that
+we have built in the previous chapter, and compute its
+minimizer with finite-difference Hessian and Newton-Powell
+with analytic Jacobian.
+
+\begintt
+MinorbShell > ei=minpath('/tmp/eight.sym')
+MinorbShell > ei.info()
+info on /tmp/eight:
+----------------------------------------------------------------
+@ GroupOrder: 12
+@ KernelTauOrder: 1
+@ ActionType: 2
+@ IsTypeR: false
+@ IsCoercive: true
+@ IsRedundant: false
+@ HasAlwaysCollisions: false
+@ TransitiveDecomposition: [ [ 1, 2, 3 ] ]
+@ TypeRDirections: [  ]
+x_1(t+T/6) = [ [ -1.0, 0.0 ], [ 0.0, 1.0 ] ] * x_2(t)
+x_2(t+T/6) = [ [ -1.0, 0.0 ], [ 0.0, 1.0 ] ] * x_3(t)
+x_3(t+T/6) = [ [ -1.0, 0.0 ], [ 0.0, 1.0 ] ] * x_1(t)
+x_1(-t) = [ [ -1.0, 0.0 ], [ 0.0, -1.0 ] ] * x_2(t)
+x_2(-t) = [ [ -1.0, 0.0 ], [ 0.0, -1.0 ] ] * x_1(t)
+x_3(-t) = [ [ -1.0, 0.0 ], [ 0.0, -1.0 ] ] * x_3(t)
+----------------------------------------------------------------
+
+MinorbShell > ei.new()
+ starting new path...
+MinorbShell > ei.relax(202)
+ relaxing...
+ # using IMSL DUMIDH
+ # Unconstrained Minimization with finite-Difference 
+Hessian
+ # using NONLINEAR DNEQNJ
+ # Newton-Powell Analytic Jacobian
+ ==> action:   3.6906; howsol: 9.3383e-16
+MinorbShell > ei.view()
+MinorbShell > ei.write('/tmp/eight.myg')
+\endtt
+
+\Section{Parallel cluster}
+
+% After installing lamboot.py and parminpath in all the nodes of the cluster,
+% under a no-password access of the cluster site, simply run:
+
+Again, make password-less access on a grid (SGE) available. 
+Export the variable {\tt REMOTE_MINORB=hostname},
+ then {\tt minpath} will (probably) be able to connect remotely.
+Then the nice function {\tt remjob} will be available:
+
+
+\begintt
+MinorbShell > res=remjob(x,200,"new();relax(2);newton(300)" )
+\endtt
+
+for example (the syntax is obvious).
+
+
+The environment variable {\tt SYMORBDIR} has to be set on the nodes 
+to locate the proper directory.
+\begintt
+. /share/SGE6.1/default/common/settings.sh
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lf9562/lib
+export PATH=${PATH}:${HOME}/local/bin
+
+\endtt
+
+
+Other useful pieces of code:
+\begintt
+rr=filter(lambda y: y.howsol() < 0.001, res)
+rr2=[x.newton(200) for x in rr]
+\endtt
