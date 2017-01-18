@@ -19,7 +19,9 @@ E.g. add alias gap='gap -l "GAP_DIR;DIR"' to .profile
 
 
 Set SYMORBDIR, as the directory where symorb is installed (e.g.
-
 ```
 ~/local/symorb
 ```
+) and then execute `${SYMORBDIR}/bin/minpath`
+
+

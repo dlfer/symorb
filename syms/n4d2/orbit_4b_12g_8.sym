@@ -1,0 +1,64 @@
+!!!======================================================================
+!!! generated configuration file
+!!!======================================================================
+0 !! action_type
+4 !! NOB
+2 !! dim
+1  !! sizekerT
+1 !! perm j=1
+2 !! perm j=2
+3 !! perm j=3
+4 !! perm j=4
+1.0D0 !! matrix (j,k)=(1,1)
+0.0D0 !! matrix (j,k)=(1,2)
+0.0D0 !! matrix (j,k)=(2,1)
+1.0D0 !! matrix (j,k)=(2,2)
+6  !! cyclic_order
+2 !! cyclic_perm j=1
+1 !! cyclic_perm j=2
+4 !! cyclic_perm j=3
+3 !! cyclic_perm j=4
+-0.5D0 !! cyclic_matrix (j,k)=(1,1)
+-0.8660254037844386D0  !!! imag= 5.8286708792820718e-16 !! cyclic_matrix (j,k)=(1,2)
+0.8660254037844386D0  !!! imag= -5.8286708792820718e-16 !! cyclic_matrix (j,k)=(2,1)
+-0.5D0 !! cyclic_matrix (j,k)=(2,2)
+1 !! cyclic_perm j=1
+2 !! cyclic_perm j=2
+3 !! cyclic_perm j=3
+4 !! cyclic_perm j=4
+-0.5D0 !! cyclic_matrix (j,k)=(1,1)
+0.8660254037844386D0  !!! imag= -5.8286708792820718e-16 !! cyclic_matrix (j,k)=(1,2)
+-0.8660254037844386D0  !!! imag= 5.8286708792820718e-16 !! cyclic_matrix (j,k)=(2,1)
+-0.5D0 !! cyclic_matrix (j,k)=(2,2)
+2 !! cyclic_perm j=1
+1 !! cyclic_perm j=2
+4 !! cyclic_perm j=3
+3 !! cyclic_perm j=4
+1.0D0 !! cyclic_matrix (j,k)=(1,1)
+0.0D0 !! cyclic_matrix (j,k)=(1,2)
+0.0D0 !! cyclic_matrix (j,k)=(2,1)
+1.0D0 !! cyclic_matrix (j,k)=(2,2)
+1 !! cyclic_perm j=1
+2 !! cyclic_perm j=2
+3 !! cyclic_perm j=3
+4 !! cyclic_perm j=4
+-0.5D0 !! cyclic_matrix (j,k)=(1,1)
+-0.8660254037844386D0  !!! imag= 5.8286708792820718e-16 !! cyclic_matrix (j,k)=(1,2)
+0.8660254037844386D0  !!! imag= -5.8286708792820718e-16 !! cyclic_matrix (j,k)=(2,1)
+-0.5D0 !! cyclic_matrix (j,k)=(2,2)
+2 !! cyclic_perm j=1
+1 !! cyclic_perm j=2
+4 !! cyclic_perm j=3
+3 !! cyclic_perm j=4
+-0.5D0 !! cyclic_matrix (j,k)=(1,1)
+0.8660254037844386D0  !!! imag= -5.8286708792820718e-16 !! cyclic_matrix (j,k)=(1,2)
+-0.8660254037844386D0  !!! imag= 5.8286708792820718e-16 !! cyclic_matrix (j,k)=(2,1)
+-0.5D0 !! cyclic_matrix (j,k)=(2,2)
+1 !! cyclic_perm j=1
+2 !! cyclic_perm j=2
+3 !! cyclic_perm j=3
+4 !! cyclic_perm j=4
+1.0D0 !! cyclic_matrix (j,k)=(1,1)
+0.0D0 !! cyclic_matrix (j,k)=(1,2)
+0.0D0 !! cyclic_matrix (j,k)=(2,1)
+1.0D0 !! cyclic_matrix (j,k)=(2,2)

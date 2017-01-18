@@ -1,0 +1,18 @@
+% SYMORB version : 4r2 fix8-0.9
+% date        : Thu Jan 29 12:33:08 CET 2004
+% on          : Linux i586 unknown
+@ GroupOrder: 2
+@ KernelTauOrder: 1
+@ ActionType: 0
+@ IsTypeR: false
+@ IsCoercive: false
+@ IsRedundant: false
+@ HasAlwaysCollisions: false
+@ TransitiveDecomposition: [ [ 1 ], [ 2 ], [ 3 ] ]
+@ TypeRDirections: [  ]
+x_1(t+T/2) = [ [ -1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ] * x_\
+1(t)
+x_2(t+T/2) = [ [ -1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ] * x_\
+2(t)
+x_3(t+T/2) = [ [ -1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ] * x_\
+3(t)
