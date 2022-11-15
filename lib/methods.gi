@@ -101,12 +101,13 @@ ConfigurationSpaceChar,
     local  tg, characters, phi, SG;
     tg := CharacterTable( group );
     SG := SymmetricGroup( n );
-    phi := sigma;
-    characters := Tensored( [ Vchar ], RestrictedClassFunctions( [ NaturalCharacter( SG ) - TrivialCharacter( SG ) ], phi ) );
-    if Length( characters ) > 1  then
-        Error( "ConfigurationSpaceChar: too many elements in the list!\n" );
-    fi;
-    return characters[1];
+    sigmachar:= RestrictedClassFunctions( [ NaturalCharacter( SG ) - TrivialCharacter( SG ) ], sigma )[1] ; 
+    single := [];
+    for k in [ 1 .. Length( Vchar )] do
+    single[k] := Vchar[k] * sigmachar[k];
+    od;
+    tensored_char:= VirtualCharacter(tg,single);
+    return tensored_char; 
 end);
 
 ##

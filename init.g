@@ -1,4 +1,4 @@
-DeclarePackage("symorb", "0.9", true );
+DeclarePackage("symorb", "0.92", true );
 SetInfoLevel(InfoWarning,0);
 ## SizeScreen([256,]);
 

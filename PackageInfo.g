@@ -1,27 +1,20 @@
 
 SetPackageInfo( rec(
-
 PackageName := "SymOrb",
-
 Subtitle := "Minimizing orbits",
-
 Version := "0.92",
-
-Date := "20/06/2005",
-
+Date := "15/11/2022",
 ArchiveURL := 
           "http://localhost",
-
 ArchiveFormats := ".tgz",
-
 Persons := [
   rec( 
     LastName      := "Ferrario",
-    FirstNames    := "Davide Luigi",
+    FirstNames    := "DL",
     IsAuthor      := true,
     IsMaintainer  := true,
     Email         := "davide.ferrario@unimib.it",
-    WWWHome       := "http://www.matapp.unimib.it/~ferrario",
+    WWWHome       := "http://www.dlfer.xyz",
     PostalAddress := Concatenation( [
                        "Università di Milano-Bicocca\n",
                        "via Cozzi, 52 -- 20125 Milano\n",
@@ -32,7 +25,6 @@ Persons := [
 ],
 
 Status := "dev",
-
 Dependencies := rec(
   GAP := ">=4.3",
   NeededOtherPackages := [],
@@ -62,6 +54,12 @@ AvailabilityTest := ReturnTrue,
 #     # since the hello binary is not vital we return ...
 #     return true;
 #   end,
+
+README_URL :="https://localhost",
+PackageInfoURL :="https://localhost",
+PackageWWWHome:="https://localhost",
+AbstractHTML:="",
+PackageWWWHome:="https://localhost",
 
 BannerString := Concatenation( 
   "----------------------------------------------------------------\n",
