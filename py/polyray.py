@@ -12,6 +12,7 @@ import sys
 from math import *
 import string
 import re
+
 PARI_EXECUTABLE = "gp -q"
 PARI_MAX_DEGREE = 7
 
@@ -32,6 +33,7 @@ def vector_product(u, v):
     return (u[1]*v[2] - u[2] * v[1], u[2]*v[0] - u[0]*v[2], u[0]*v[1] - u[1] * v[0])
 
 # -------------------------------------------------------------------------#
+
 
 def replace_exp(str):
     return str.replace('^', '**')
@@ -111,7 +113,7 @@ def get_opt():
             break
 
     if len(xarguments) > 0:
-        poly = " ".join(xarguments)
+        poly = string.join(xarguments)
     else:
         poly = ''
 
@@ -429,11 +431,11 @@ if(deg==1,deg=2);
 if(deg>%i || deg<2,quit);
 for(i=0,deg,for(j=0,i,for(k=0,j,print(polcoeff(polcoeff(polcoeff(p,deg-i,x),i-j,y),j-k,z),","))));
 """ % (str, PARI_MAX_DEGREE))
-        all_data = str.split(all_data, "\n")
-        self.degree = int(all_data[0])
+        all_data = string.split(all_data, "\n")
+        self.degree = string.atoi(all_data[0])
         for line in all_data[1:-1]:
             self.num_coeffs += [line[:-1]]
-        self.coeffs = ','.join(self.num_coeffs)
+        self.coeffs = string.join(self.num_coeffs, ',')
         self.make_povray(zone=2)
 
     def make_povray(self, zone=1):
@@ -984,7 +986,7 @@ class Remote:
         if IS_REMOTE:
             return self._remote_rexec()
         else:
-            object.TODOLIST = str.split(todo, ';')
+            object.TODOLIST = string.split(todo, ';')
             return self._local_rexec(object)
 
     def _local_rexec(self, object):

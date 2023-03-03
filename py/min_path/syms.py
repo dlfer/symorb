@@ -13,6 +13,7 @@ import pickle
 import readline
 import os
 import time
+import string
 import re
 
 # begin _HERE_
@@ -21,12 +22,12 @@ false = False
 
 
 def parse_attributes(data):
-    data_lines = str.split(data, "\n")
+    data_lines = string.split(data, "\n")
     data_dic = {}
     for line in data_lines:
         if re.match("^@ ", line):
             line = re.sub("^@ | ", "", line)
-            tokens = str.split(line, ":")
+            tokens = string.split(line, ":")
             if len(tokens) == 2:
                 data_dic[tokens[0]] = eval(tokens[1])
             else:

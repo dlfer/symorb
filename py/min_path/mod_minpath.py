@@ -180,7 +180,7 @@ class minpath:
 
     def relax(*args):
         if len(args) == 1:
-            print((args[0].algs))
+            print(args[0].algs)
             return
         elif len(args) > 2:
             print("usage: relax(ALG)")
@@ -206,11 +206,11 @@ class minpath:
             self.gammadata = _minorb_bin(alldata)
         # self.gammadata=_minorb_bin(alldata)
         self.parsegammadata()
-        print((" ==> action: %8.4f; howsol: %8.4e" % (self.action(), self.howsol())))
+        print(" ==> action: %8.4f; howsol: %8.4e" % (self.action(), self.howsol()))
 
     def newton(self, ALG):
         if (ALG / 100) == 0:
-            print((" Newton algorithm wrong ALG:", ALG))
+            print(" Newton algorithm wrong ALG:", ALG)
             return
         self.confdata = _CONFIG_STRING % (
             "newton",
@@ -232,7 +232,7 @@ class minpath:
             self.gammadata = _minorb_bin(alldata)
         # self.gammadata=_minorb_bin(alldata)
         self.parsegammadata()
-        print((" ==> action: %8.4f; howsol: %8.4e" % (self.action(), self.howsol())))
+        print(" ==> action: %8.4f; howsol: %8.4e" % (self.action(), self.howsol()))
 
     def newtill(self, ALG, eps, maxiter=10):
         for k in range(maxiter):
@@ -522,7 +522,7 @@ def scan_files(dir):
     symfiles = os.listdir(dir)
     for file_i in range(len(symfiles)):
         if os.path.splitext(symfiles[file_i])[1] == '.sym':
-            print(("    " + symfiles[file_i]))
+            print("    " + symfiles[file_i])
     print()
 
 
