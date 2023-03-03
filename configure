@@ -16,21 +16,6 @@ echo "ORBVIEWDIR=src/orbview" >> Makefile.local
 echo "PYTHONLOCAL=src/python.local" >> Makefile.local
 echo "done."
 
-echo -n "Checking python..."
-if [ -e "`type -p python2.7`" ]; then
-    if [ -e "`type -p env`" ]; then 
-	echo "#!`type -p env` python2.7" > src/python.local
-    else
-	echo "#!`type -p python2.7`" > src/python.local
-    fi
-else
-    cat <<__EOF__
-    No, without python 2.7 this package does not work.
-    Please install it http://www.python.org
-__EOF__
-    exit 127
-fi
-echo "done."
 
 echo -n "checking if geomview exists..."
 if [ -e "`type -p geomview`" ]; then

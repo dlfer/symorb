@@ -62,7 +62,7 @@ def make_objects(symfile):
   fd=open(OBJS_FILENAME,'r')
   r = pickle.load(fd)
   fd.close()
-  filtered_r=filter(lambda y: y.howsol()<0.001,r )
+  filtered_r=[y for y in r if y.howsol()<0.001]
   for x in filtered_r:
     index += 1
     outfile="%s_%02i.data" % (basename, index)
@@ -72,7 +72,7 @@ def make_objects(symfile):
     try:
       pass
       # make_image(outfile)
-    except Exception, v:
+    except Exception as v:
       sys.stderr.write("file %s failed! %s \n" % (outfile,v) )
   return
 
