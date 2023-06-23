@@ -14,4 +14,4 @@ os.system(" echo ssh -f -L %i:localhost:%i %s -N" % (PORT_NUMBER,PORT_NUMBER,REM
 c = rpyc.classic.connect("localhost")
 
 c.execute("x=5")
-print((c.eval("x+4")))
+print(c.eval("x+4"))

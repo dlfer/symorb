@@ -87,9 +87,6 @@ return result;
 end);
 
 
-
-## python float conversion
-
 InstallGlobalFunction(ConvertToFloat,
 function (var)
 local str,filename,python_script, exec_program, a, tmpstring;
@@ -101,19 +98,19 @@ def E(n):\n\
 \n\
 \n\
 tmpstring = sys.argv[1]\n\
-tmpstring = string.replace(tmpstring,\"^\",\"**\")\n\
-tmpstring = string.replace(tmpstring,\"/\",\"* 1.0 /\")\n\
+tmpstring = str.replace(tmpstring,\"^\",\"**\")\n\
+tmpstring = str.replace(tmpstring,\"/\",\"* 1.0 /\")\n\
 ## sys.stdout.write(tmpstring)\n\
 var = eval(tmpstring)+0J \n\
 \n\
-sys.stdout.write(`var.real`+'D0')\n\
+sys.stdout.write(str(var.real)+'D0')\n\
 if var.imag != 0:\n\
-        sys.stdout.write( \"  !!! imag= \" + `var.imag` )\n\
+        sys.stdout.write( \"  !!! imag= \" + str(var.imag) )\n\
 \n\
 ";
 
 
-exec_program := Filename( DirectoriesSystemPrograms(), "python" );
+exec_program := Filename( DirectoriesSystemPrograms(), "python3" );
 str := ""; a := OutputTextString(str,true);
 SetPrintFormattingStatus(a,false);
 Process( DirectoryCurrent(), exec_program, InputTextNone(), a, ["-c", python_script, String(var)] );
@@ -136,15 +133,15 @@ def E(n):\n\
 \n\
 \n\
 tmpstring = sys.argv[1]\n\
-tmpstring = string.replace(tmpstring,\"^\",\"**\")\n\
-tmpstring = string.replace(tmpstring,\"/\",\"* 1.0 /\")\n\
+tmpstring = str.replace(tmpstring,\"^\",\"**\")\n\
+tmpstring = str.replace(tmpstring,\"/\",\"* 1.0 /\")\n\
 ## sys.stdout.write(tmpstring)\n\
 var = eval(tmpstring)+0J \n\
 \n\
-sys.stdout.write(`var.real`)\n\
+sys.stdout.write(str(var.real))\n\
 ";
 
-exec_program := Filename( DirectoriesSystemPrograms(), "python" );
+exec_program := Filename( DirectoriesSystemPrograms(), "python3" );
 str := ""; a := OutputTextString(str,true);
 SetPrintFormattingStatus(a,false);
 Process( DirectoryCurrent(), exec_program, InputTextNone(), a, ["-c", python_script, String(var)] );
@@ -316,8 +313,7 @@ path,date;
 info_string:="";
 output:=OutputTextString(info_string,true);
 SetPrintFormattingStatus(output,false);
-
-AppendTo(output,"% SYMORB version : ", VERSION, "-",SYMORB_VERSION, "\n");
+AppendTo(output,"% SYMORB version : ","-",SYMORB_VERSION, "\n");
 path:=DirectoriesSystemPrograms();
 date:=Filename(path,"date");
 AppendTo(output,"% date        : ");
